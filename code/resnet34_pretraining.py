@@ -9,9 +9,9 @@ data.normalize(cifar_stats)
 
 learn = cnn_learner(data, models.resnet34, metrics = accuracy)
 
-learn.fit(100)
+learn.fit_one_cycle(100, max_lr = 1e-2)
 
-learn.export(file = 'bs64.pkl')
+learn.export(file = 'bs64_epochs100.pkl')
 
 
 
