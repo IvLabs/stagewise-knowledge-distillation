@@ -8,3 +8,7 @@ student, then do feature distillation
 - [ ] Use smaller dataset for feature distillation 
 
 
+
+(if nothing works out we'll take this as a paper reimplementation of https://arxiv.org/abs/1412.6550 so no harm)
+
+
