@@ -1,7 +1,7 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
-torch.cuda.set_device(0)
+torch.cuda.set_device(1)
 
 path = untar_data(URLs.IMAGENETTE)
 
@@ -70,7 +70,7 @@ num_epochs = 100
 total_step = len(data.train_ds) // batch_size
 train_loss_list = list()
 val_loss_list = list()
-min_val = 100
+min_val = 0
 for epoch in range(num_epochs):
     trn = []
     net.train()
@@ -93,7 +93,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if i % 50 == 49 :
-            print('epoch = ', epoch, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', loss.item())
+            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', loss.item())
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)
@@ -119,11 +119,23 @@ for epoch in range(num_epochs):
     val_acc = _get_accuracy(data.valid_dl, net)
     print('epoch : ', epoch + 1, ' / ', num_epochs, ' | TL : ', train_loss, ' | VL : ', val_loss, ' | VA : ', val_acc * 100)
     
-    if val_loss < min_val :
+    if val_acc > min_val :
         print('saving model')
-        min_val = val_loss
-        torch.save(net.state_dict(), '../saved_models/model1_normal.pt')
+        min_val = val_acc
+        torch.save(net.state_dict(), '../saved_models/model2_normal.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/model1_normal.pt'))
+net.load_state_dict(torch.load('../saved_models/model2_normal.pt'))
 _get_accuracy(data.valid_ds, net)
+
+plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')
+plt.plot(range(100), val_loss_list, 'b', label = 'validation_loss')
+plt.legend()
+plt.savefig('../figures/training_losses_no_teacher.jpg')
+plt.show()
+plt.close()
+
+plt.plot(range(100), val_acc_list, 'r', label = 'validation_accuracy')
+plt.legend()
+plt.savefig('../figures/validation_acc_no_teacher.jpg')
+plt.show()
