@@ -1,6 +1,5 @@
 from fastai.vision import *
 import torch
-from torchsummary import summary
 import matplotlib.pyplot as plt
 torch.cuda.set_device(0)
 
@@ -48,8 +47,8 @@ class SaveFeatures :
         
 # saving outputs of all Basic Blocks
 mdl = learn.model
-sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4]]]
-sf2 = [SaveFeatures(m) for m in [net[1], net[3]]]
+sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
+sf2 = [SaveFeatures(m) for m in [net[1], net[3], net[5], net[7], net[9]]]
 
 def _get_accuracy(dataloader, Net):
     total = 0
@@ -105,11 +104,11 @@ for epoch in range(num_epochs):
         y_pred = net(images)
         y_pred2 = mdl(images)
         
-        for k in range(2) : 
+        for k in range(5) : 
             loss += F.mse_loss(sf[k].features, sf2[k].features)
         
         loss += F.cross_entropy(y_pred, labels)
-        trn.append(loss.item() / 3)
+        trn.append(loss.item() / 6)
 
         optimizer.zero_grad()
         loss.backward()
@@ -117,7 +116,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if i % 50 == 49 :
-            print('epoch = ', epoch, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', loss.item() / 3)
+            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item() / 6, 4))
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)
@@ -142,25 +141,23 @@ for epoch in range(num_epochs):
     val_loss_list.append(val_loss)
     val_acc = _get_accuracy(data.valid_dl, net)
 
-    print('epoch : ', epoch + 1, ' / ', num_epochs, ' | TL : ', train_loss, ' | VL : ', val_loss, ' | VA : ', val_acc * 100)
+    print('epoch : ', epoch + 1, ' / ', num_epochs, ' | TL : ', round(train_loss, 4), ' | VL : ', round(val_loss, 4), ' | VA : ', round(val_acc * 100, 6))
     val_acc_list.append(val_acc)
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/model5.pt')
+        torch.save(net.state_dict(), '../saved_models/5fm/model4.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/model5.pt'))
+net.load_state_dict(torch.load('../saved_models/5fm/model4.pt'))
 _get_accuracy(data.valid_dl, net)
 
-plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')
-plt.plot(range(100), val_loss_list, 'b', label = 'validation_loss')
+plt.plot(range(num_epochs), train_loss_list, 'r', label = 'training_loss')
+plt.plot(range(num_epochs), val_loss_list, 'b', label = 'validation_loss')
 plt.legend()
-plt.savefig('../figures/training_losses5.jpg')
-plt.show()
+plt.savefig('../figures/5fm/training_losses4.jpg')
 plt.close()
 
-plt.plot(range(100), val_acc_list, 'r', label = 'validation_accuracy')
+plt.plot(range(num_epochs), val_acc_list, 'r', label = 'validation_accuracy')
 plt.legend()
-plt.savefig('../figures/validation_acc5.jpg')
-plt.show()
+plt.savefig('../figures/5fm/validation_acc4.jpg')
