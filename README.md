@@ -16,7 +16,7 @@ student, then do knowledge distillation
 ## Preliminary Results : 
 Note : All accuracies are on validation dataset unless mentioned otherwise.
 
-Following results are for the `ResNet34` teacher model and the following student model
+Following results are for the `ResNet34` teacher model and the following student model : 
 ```
 class Flatten(nn.Module):
     def forward(self, input):
@@ -46,7 +46,7 @@ net = nn.Sequential(
 | Student model trained independently | 86.8, 86.6, 87.8, 86.2, 86.2 | 86.72 +- 0.58
 | Student model trained using 5 feature maps from teacher and also using data | 87.2, 87.2, 87.0, 87.6, 87.2 | 87.24 +- 0.20|
 
-Following resutls are for the `ResNet34` teacher model and the following student model
+Following results are for the `ResNet34` teacher model and the following student model :
 ```
 class Flatten(nn.Module):
     def forward(self, input):
