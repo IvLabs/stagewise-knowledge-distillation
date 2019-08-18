@@ -2,7 +2,7 @@ from fastai.vision import *
 import torch
 from torchsummary import summary
 import matplotlib.pyplot as plt
-torch.cuda.set_device(1)
+torch.cuda.set_device(0)
 
 path = untar_data(URLs.IMAGENETTE)
 
@@ -52,6 +52,8 @@ if torch.cuda.is_available() :
     net = net.cuda()
     print('Model on GPU')
     
+# net.load_state_dict(torch.load('../saved_models/medium_no_teacher/model.pt'))
+
 class SaveFeatures :
     def __init__(self, m) : 
         self.handle = m.register_forward_hook(self.hook_fn)
@@ -62,8 +64,10 @@ class SaveFeatures :
         
 # saving outputs of all Basic Blocks
 mdl = learn.model
+# for all 5 feature maps
 sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
 sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4], net[5]]]
+num_fm = 5
 
 def _get_accuracy(dataloader, Net):
     total = 0
@@ -119,11 +123,11 @@ for epoch in range(num_epochs):
         y_pred = net(images)
         y_pred2 = mdl(images)
         
-        for k in range(3) : 
+        for k in range(num_fm) : 
             loss += F.mse_loss(sf[k].features, sf2[k].features)
         
         loss += F.cross_entropy(y_pred, labels)
-        trn.append(loss.item() / 4)
+        trn.append(loss.item() / (num_fm + 1))
 
         optimizer.zero_grad()
         loss.backward()
@@ -131,7 +135,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if i % 50 == 49 :
-            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item() / 4, 4))
+            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item() / (num_fm + 1), 4))
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)

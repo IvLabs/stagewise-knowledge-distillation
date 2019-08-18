@@ -83,3 +83,8 @@ net = nn.Sequential(
 )
 ```
 - Pretraining above student model using only the data (Imagenette dataset) gives 89.2 % validation accuracy.
+- Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets around 94 % validation accuracy.
+
+| Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
+| --------------|------------------------------------| ------------- |
+| Student model trained using 5 feature maps from teacher and also using data | 90.0, 90.0, 90.8, 90.2, 90.6 | 90.32 +- 0.32 |
