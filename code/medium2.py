@@ -2,7 +2,7 @@ from fastai.vision import *
 import torch
 from torchsummary import summary
 import matplotlib.pyplot as plt
-torch.cuda.set_device(0)
+torch.cuda.set_device(1)
 
 path = untar_data(URLs.IMAGENETTE)
 
@@ -165,18 +165,18 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/medium_4fm/model4.pt')
+        torch.save(net.state_dict(), '../saved_models/medium_4fm/model3.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/medium_4fm/model4.pt'))
+net.load_state_dict(torch.load('../saved_models/medium_4fm/model3.pt'))
 print(_get_accuracy(data.valid_dl, net))
 
 plt.plot(range(num_epochs), train_loss_list, 'r', label = 'training_loss')
 plt.plot(range(num_epochs), val_loss_list, 'b', label = 'validation_loss')
 plt.legend()
-plt.savefig('../figures/medium_4fm/training_losses4.jpg')
+plt.savefig('../figures/medium_4fm/training_losses3.jpg')
 plt.close()
 
 plt.plot(range(num_epochs), val_acc_list, 'r', label = 'validation_accuracy')
 plt.legend()
-plt.savefig('../figures/medium_4fm/validation_acc4.jpg')
+plt.savefig('../figures/medium_4fm/validation_acc3.jpg')
