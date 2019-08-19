@@ -1,7 +1,7 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
-torch.cuda.set_device(1)
+torch.cuda.set_device(0)
 
 path = untar_data(URLs.IMAGENETTE)
 
@@ -138,18 +138,18 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/medium_no_teacher/model.pt')
+        torch.save(net.state_dict(), '../saved_models/medium_no_teacher/model3.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/medium_no_teacher/model.pt'))
+net.load_state_dict(torch.load('../saved_models/medium_no_teacher/model3.pt'))
 _get_accuracy(data.valid_dl, net)
 
 plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')
 plt.plot(range(100), val_loss_list, 'b', label = 'validation_loss')
 plt.legend()
-plt.savefig('../figures/medium_no_teacher/training_losses.jpg')
+plt.savefig('../figures/medium_no_teacher/training_losses3.jpg')
 plt.close()
 
 plt.plot(range(100), val_acc_list, 'r', label = 'validation_accuracy')
 plt.legend()
-plt.savefig('../figures/medium_no_teacher/validation_acc.jpg')
+plt.savefig('../figures/medium_no_teacher/validation_acc3.jpg')
