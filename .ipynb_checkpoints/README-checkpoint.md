@@ -14,9 +14,9 @@ student, then do knowledge distillation
 
 
 ## Preliminary Results : 
-Note : All accuracies are on validation dataset unless mentioned otherwise.
+Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. The `n` feature maps of teacher model used for training student model are the first `n` feature maps (all of distinct shapes) output by the teacher model.
 
-Following results are for the `ResNet34` teacher model and the following student model : 
+#### Following results are for the `ResNet34` teacher model and the following student model : 
 ```
 class Flatten(nn.Module):
     def forward(self, input):
@@ -46,7 +46,7 @@ net = nn.Sequential(
 | Student model trained independently | 86.8, 86.6, 87.8, 86.2, 86.2 | 86.72 +- 0.58
 | Student model trained using 5 feature maps from teacher and also using data | 87.2, 87.2, 87.0, 87.6, 87.2 | 87.24 +- 0.20|
 
-Following results are for the `ResNet34` teacher model and the following student model :
+#### Following results are for the `ResNet34` teacher model and the following student model :
 ```
 class Flatten(nn.Module):
     def forward(self, input):
@@ -89,3 +89,4 @@ net = nn.Sequential(
 | --------------|------------------------------------| ------------- |
 | Student model trained using 5 feature maps from teacher and also using data | 90.0, 90.0, 90.8, 90.2, 90.6 | 90.32 +- 0.32 |
 | Student model trained using 4 feature maps from teacher and also using data | 88.6, 88.6, 89.6, 89.2, 89.6 | 89.12 +- 0.45 |
+| Student model trained using 3 feature maps from teacher and also using data | 88.0, 89.4, 91.4, 89.2, 90.2 | 89.64 +- 1.12 |

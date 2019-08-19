@@ -67,7 +67,7 @@ mdl = learn.model
 # for all 5 feature maps
 sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
 sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4], net[5]]]
-num_fm = 4
+num_fm = 3
 
 def _get_accuracy(dataloader, Net):
     total = 0
@@ -165,18 +165,18 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/medium_4fm/model3.pt')
+        torch.save(net.state_dict(), '../saved_models/medium_3fm/model3.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/medium_4fm/model3.pt'))
+net.load_state_dict(torch.load('../saved_models/medium_3fm/model3.pt'))
 print(_get_accuracy(data.valid_dl, net))
 
 plt.plot(range(num_epochs), train_loss_list, 'r', label = 'training_loss')
 plt.plot(range(num_epochs), val_loss_list, 'b', label = 'validation_loss')
 plt.legend()
-plt.savefig('../figures/medium_4fm/training_losses3.jpg')
+plt.savefig('../figures/medium_3fm/training_losses3.jpg')
 plt.close()
 
 plt.plot(range(num_epochs), val_acc_list, 'r', label = 'validation_accuracy')
 plt.legend()
-plt.savefig('../figures/medium_4fm/validation_acc3.jpg')
+plt.savefig('../figures/medium_3fm/validation_acc3.jpg')
