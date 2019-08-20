@@ -1,13 +1,18 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
-torch.cuda.set_device(1)
+import matplotlib.pyplot as plt
+torch.cuda.set_device(0)
 
 path = untar_data(URLs.IMAGENETTE)
 
 batch_size = 64
 tfms = get_transforms(do_flip=False)
 data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = batch_size, size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+
+learn = cnn_learner(data, models.resnet34, metrics = accuracy)
+learn = learn.load('unfreeze_imagenet_bs64')
+# learn.summary()
 
 class Flatten(nn.Module) :
     def forward(self, input):
@@ -45,6 +50,23 @@ net = nn.Sequential(
 if torch.cuda.is_available() : 
     net = net.cuda()
     print('Model on GPU')
+    
+# net.load_state_dict(torch.load('../saved_models/medium_no_teacher/model.pt'))
+
+class SaveFeatures :
+    def __init__(self, m) : 
+        self.handle = m.register_forward_hook(self.hook_fn)
+    def hook_fn(self, m, inp, outp) : 
+        self.features = outp
+    def remove(self) :
+        self.handle.remove()
+        
+# saving outputs of all Basic Blocks
+mdl = learn.model
+# for all 5 feature maps
+sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6]]]
+sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4]]]
+num_fm = 4
 
 def _get_accuracy(dataloader, Net):
     total = 0
@@ -75,10 +97,10 @@ def _get_accuracy(dataloader, Net):
         total += len(diff_ind)
 
     accuracy = correct / total
+    # print(len(diff_ind))
     return accuracy
 
 optimizer = torch.optim.Adam(net.parameters(), lr = 1e-4)
-
 num_epochs = 100
 total_step = len(data.train_ds) // batch_size
 train_loss_list = list()
@@ -89,6 +111,7 @@ for epoch in range(num_epochs):
     trn = []
     net.train()
     for i, (images, labels) in enumerate(data.train_dl) :
+        loss = 0.0
         if torch.cuda.is_available():
             images = torch.autograd.Variable(images).cuda().float()
             labels = torch.autograd.Variable(labels).cuda()
@@ -97,9 +120,13 @@ for epoch in range(num_epochs):
             labels = torch.autograd.Variable(labels)
 
         y_pred = net(images)
+        y_pred2 = mdl(images)
         
-        loss = F.cross_entropy(y_pred, labels)
-        trn.append(loss.item())
+        for k in range(num_fm) : 
+            loss += F.mse_loss(sf[k].features, sf2[k].features)
+        
+        loss += F.cross_entropy(y_pred, labels)
+        trn.append(loss.item() / (num_fm + 1))
 
         optimizer.zero_grad()
         loss.backward()
@@ -107,7 +134,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if i % 50 == 49 :
-            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
+            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item() / (num_fm + 1), 4))
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)
@@ -131,24 +158,24 @@ for epoch in range(num_epochs):
     val_loss = (sum(val) / len(val)).item()
     val_loss_list.append(val_loss)
     val_acc = _get_accuracy(data.valid_dl, net)
-    val_acc_list.append(val_acc)
+
     print('epoch : ', epoch + 1, ' / ', num_epochs, ' | TL : ', round(train_loss, 4), ' | VL : ', round(val_loss, 4), ' | VA : ', round(val_acc * 100, 6))
-    
+    val_acc_list.append(val_acc)
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/small_no_teacher/model1.pt')
+        torch.save(net.state_dict(), '../saved_models/small_4fm/model0.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/small_no_teacher/model1.pt'))
-_get_accuracy(data.valid_dl, net)
+net.load_state_dict(torch.load('../saved_models/small_4fm/model0.pt'))
+print(_get_accuracy(data.valid_dl, net))
 
 plt.plot(range(num_epochs), train_loss_list, 'r', label = 'training_loss')
 plt.plot(range(num_epochs), val_loss_list, 'b', label = 'validation_loss')
 plt.legend()
-plt.savefig('../figures/small_no_teacher/training_losses1.jpg')
+plt.savefig('../figures/small_4fm/training_losses0.jpg')
 plt.close()
 
 plt.plot(range(num_epochs), val_acc_list, 'r', label = 'validation_accuracy')
 plt.legend()
-plt.savefig('../figures/small_no_teacher/validation_acc1.jpg')
+plt.savefig('../figures/small_4fm/validation_acc0.jpg')
