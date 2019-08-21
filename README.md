@@ -131,5 +131,5 @@ net = nn.Sequential(
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 90.8, 90.8, 91.2, 90.6, 91.2 | 90.92 +- 0.24 |
-| Student model trained using 4 feature maps from teacher and also using data | 90.4, 90.6, 89.4, 90.4, 90.8 | 90.32 +- 0.48 |
-| Student model trained using 3 feature maps from teacher and also using data | 89.6, 91.6, 90.2, 90.4, 90.2 | 90.4 +- 0.65 |
+| Student model trained using 4 feature maps from teacher and also using data | 90.4, 90.6, 90.6, 90.4, 90.8 | 90.56 +- 0.14 |
+| Student model trained using 3 feature maps from teacher and also using data | 90.8, 91.6, 90.2, 90.4, 90.2 | 90.64 +- 0.52 |

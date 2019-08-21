@@ -3,8 +3,8 @@ import torch
 from torchsummary import summary
 import matplotlib.pyplot as plt
 torch.cuda.set_device(0)
-torch.manual_seed(3)
-torch.cuda.manual_seed(3)
+torch.manual_seed(8)
+torch.cuda.manual_seed(8)
 
 path = untar_data(URLs.IMAGENETTE)
 
@@ -68,7 +68,7 @@ mdl = learn.model
 # for all 5 feature maps
 sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6]]]
 sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4]]]
-num_fm = 3
+num_fm = 4
 
 def _get_accuracy(dataloader, Net):
     total = 0
@@ -166,18 +166,18 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/small_3fm/model3.pt')
+        torch.save(net.state_dict(), '../saved_models/small_4fm/model2.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/small_3fm/model3.pt'))
+net.load_state_dict(torch.load('../saved_models/small_4fm/model2.pt'))
 print(_get_accuracy(data.valid_dl, net))
 
 plt.plot(range(num_epochs), train_loss_list, 'r', label = 'training_loss')
 plt.plot(range(num_epochs), val_loss_list, 'b', label = 'validation_loss')
 plt.legend()
-plt.savefig('../figures/small_3fm/training_losses3.jpg')
+plt.savefig('../figures/small_4fm/training_losses2.jpg')
 plt.close()
 
 plt.plot(range(num_epochs), val_acc_list, 'r', label = 'validation_accuracy')
 plt.legend()
-plt.savefig('../figures/small_3fm/validation_acc3.jpg')
+plt.savefig('../figures/small_4fm/validation_acc2.jpg')
