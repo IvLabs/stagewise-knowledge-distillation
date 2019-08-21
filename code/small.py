@@ -3,8 +3,8 @@ import torch
 from torchsummary import summary
 import matplotlib.pyplot as plt
 torch.cuda.set_device(0)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
+torch.manual_seed(5)
+torch.cuda.manual_seed(5)
 
 path = untar_data(URLs.IMAGENETTE)
 
@@ -166,18 +166,18 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/small_3fm/model0.pt')
+        torch.save(net.state_dict(), '../saved_models/small_3fm/model4.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/small_3fm/model0.pt'))
+net.load_state_dict(torch.load('../saved_models/small_3fm/model4.pt'))
 print(_get_accuracy(data.valid_dl, net))
 
 plt.plot(range(num_epochs), train_loss_list, 'r', label = 'training_loss')
 plt.plot(range(num_epochs), val_loss_list, 'b', label = 'validation_loss')
 plt.legend()
-plt.savefig('../figures/small_3fm/training_losses0.jpg')
+plt.savefig('../figures/small_3fm/training_losses4.jpg')
 plt.close()
 
 plt.plot(range(num_epochs), val_acc_list, 'r', label = 'validation_accuracy')
 plt.legend()
-plt.savefig('../figures/small_3fm/validation_acc0.jpg')
+plt.savefig('../figures/small_3fm/validation_acc4.jpg')
