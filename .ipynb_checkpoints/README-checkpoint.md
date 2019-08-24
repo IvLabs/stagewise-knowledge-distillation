@@ -3,9 +3,8 @@
 ## TODO list
 - [x] train teacher network
 - [x] pretrain the child network
-- [ ] try using different sized networks (keep decreasing the size of the network, take it where there is a big difference of accuracy between teacher and 
-- [ ] train one block at a time using fastai 
-student, then do knowledge distillation 
+- [x] try using different sized networks (keep decreasing the size of the network, take it where there is a big difference of accuracy between teacher and 
+- [x] train one block at a time of student, then train classifier part on data 
 - [ ] Use smaller dataset for knowledge distillation 
 
 
@@ -39,7 +38,7 @@ net = nn.Sequential(
 )
 ```
 
-- Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets around 94 % validation accuracy.
+- Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets 93.6 % validation accuracy.
 
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
@@ -82,7 +81,7 @@ net = nn.Sequential(
     nn.Linear(256, 10)
 )
 ```
-- Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets around 94 % validation accuracy.
+- Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets 93.6 % validation accuracy.
 
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
@@ -90,6 +89,7 @@ net = nn.Sequential(
 | Student model trained using 5 feature maps from teacher and also using data | 90.0, 90.0, 90.8, 90.2, 90.6 | 90.32 +- 0.32 |
 | Student model trained using 4 feature maps from teacher and also using data | 88.6, 88.6, 89.6, 89.2, 89.6 | 89.12 +- 0.45 |
 | Student model trained using 3 feature maps from teacher and also using data | 88.0, 89.4, 91.4, 89.2, 90.2 | 89.64 +- 1.12 |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | N/A | 94.2 |
 
 #### Following results are for the `ResNet34` teacher model and the following student model (one `BasicBlock` less than previous student model) :
 ```
@@ -126,7 +126,7 @@ net = nn.Sequential(
     nn.Linear(128, 10)
 )
 ```
-- Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets around 94 % validation accuracy.
+- Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets 93.6 % validation accuracy.
 
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
