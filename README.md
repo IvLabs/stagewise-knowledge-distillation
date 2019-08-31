@@ -1,19 +1,24 @@
 # knowledge_distillation
+baseline : https://arxiv.org/abs/1412.6550 
+(if nothing works out we'll take this as a paper reimplementation of above paper so no harm)
+
 
 ## TODO list
 - [x] train teacher network
 - [x] pretrain the child network
 - [x] try using different sized networks (keep decreasing the size of the network, take it where there is a big difference of accuracy between teacher and 
 - [x] train one block at a time of student, then train classifier part on data (works better)
-
 - [x] Use smaller dataset for knowledge distillation 
-
 - [ ] repeat each one five times. 
 - [ ] Use bigger resnets as teachers (e.g Teacher: ResNet101, Student: ResNet34, ResNet18)
+- [ ] compare with pruning and other such algos 
 
-### Secondary Aim: 
-generalize for other types of networks. Mainly start with UNets.
-(if nothing works out we'll take this as a paper reimplementation of https://arxiv.org/abs/1412.6550 so no harm)
+### Secondary Aims: 
+- [ ] Get it to work for Fully Convolutional Networks.
+
+### Long Term Aims:
+- [ ] Go for more general algorithm for compression 
+
 
 
 ## Preliminary Results : 
