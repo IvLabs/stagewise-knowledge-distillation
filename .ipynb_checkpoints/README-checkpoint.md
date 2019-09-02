@@ -1,15 +1,24 @@
 # knowledge_distillation
+baseline : https://arxiv.org/abs/1412.6550 
+(if nothing works out we'll take this as a paper reimplementation of above paper so no harm)
+
 
 ## TODO list
 - [x] train teacher network
 - [x] pretrain the child network
 - [x] try using different sized networks (keep decreasing the size of the network, take it where there is a big difference of accuracy between teacher and 
-- [x] train one block at a time of student, then train classifier part on data 
-- [ ] Use smaller dataset for knowledge distillation 
+- [x] train one block at a time of student, then train classifier part on data (works better)
+- [x] Use smaller dataset for knowledge distillation 
+- [ ] repeat each one five times. 
+- [ ] Use bigger resnets as teachers (e.g Teacher: ResNet101, Student: ResNet34, ResNet18)
+- [ ] compare with pruning and other such algos 
 
+### Secondary Aims: 
+- [ ] Get it to work for Fully Convolutional Networks.
 
+### Long Term Aims:
+- [ ] Go for more general algorithm for compression 
 
-(if nothing works out we'll take this as a paper reimplementation of https://arxiv.org/abs/1412.6550 so no harm)
 
 
 ## Preliminary Results : 
@@ -89,7 +98,7 @@ net = nn.Sequential(
 | Student model trained using 5 feature maps from teacher and also using data | 90.0, 90.0, 90.8, 90.2, 90.6 | 90.32 +- 0.32 |
 | Student model trained using 4 feature maps from teacher and also using data | 88.6, 88.6, 89.6, 89.2, 89.6 | 89.12 +- 0.45 |
 | Student model trained using 3 feature maps from teacher and also using data | 88.0, 89.4, 91.4, 89.2, 90.2 | 89.64 +- 1.12 |
-| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | N/A | 94.2 |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 94.2, 93.6, 93.8 | N/A |
 
 #### Following results are for the `ResNet34` teacher model and the following student model (one `BasicBlock` less than previous student model) :
 ```

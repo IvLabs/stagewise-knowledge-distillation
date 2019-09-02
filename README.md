@@ -98,7 +98,7 @@ net = nn.Sequential(
 | Student model trained using 5 feature maps from teacher and also using data | 90.0, 90.0, 90.8, 90.2, 90.6 | 90.32 +- 0.32 |
 | Student model trained using 4 feature maps from teacher and also using data | 88.6, 88.6, 89.6, 89.2, 89.6 | 89.12 +- 0.45 |
 | Student model trained using 3 feature maps from teacher and also using data | 88.0, 89.4, 91.4, 89.2, 90.2 | 89.64 +- 1.12 |
-| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | N/A | 94.2 |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 94.2, 93.6, 93.8 | N/A |
 
 #### Following results are for the `ResNet34` teacher model and the following student model (one `BasicBlock` less than previous student model) :
 ```
