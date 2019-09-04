@@ -14,7 +14,14 @@ baseline : https://arxiv.org/abs/1412.6550
 - [ ] compare with pruning and other such algos 
 
 ### Secondary Aims: 
-- [ ] Get it to work for Fully Convolutional Networks.
+- [ ] Get it to work for Unet.
+
+#### Roadmap for Unet:
+Need to test two things: 
+1) - [ ] Smaller encoder and corresponding decoder. (Written in notebooks/unet.py)
+2) - [ ] Smaller encoder and default fastai decoder. 
+
+
 
 ### Long Term Aims:
 - [ ] Go for more general algorithm for compression 
