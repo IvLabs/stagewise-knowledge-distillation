@@ -45,7 +45,7 @@ for repeated in range(5) :
             "repeated": repeated,
             "num_classes": 10,
             "batch_size": 64,
-            "num_epochs": 1,
+            "num_epochs": 100,
             "learning_rate": 1e-4
         }
         
