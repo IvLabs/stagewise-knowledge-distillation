@@ -1,4 +1,4 @@
-from comet_ml import Experiment
+
 import matplotlib.pyplot as plt
 from fastai.vision import *
 import torch
@@ -34,8 +34,10 @@ class SaveFeatures :
     def remove(self) :
         self.handle.remove()
     
-for repeated in range(5) : 
+for repeated in range(3, 5) : 
     for stage in range(4) :
+        if repeated == 3 and stage == 0 : 
+            continue
         torch.manual_seed(repeated)
         torch.cuda.manual_seed(repeated)
 
@@ -98,9 +100,6 @@ for repeated in range(5) :
         sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6]]]
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4]]]
         
-        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu",
-                        project_name="kd1", workspace="akshaykvnit")
-        experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
             filename = '../saved_models/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         else : 
@@ -161,9 +160,6 @@ for repeated in range(5) :
             if (epoch + 1) % 5 == 0 : 
                 print('repetition : ', hyper_params["repeated"], ' | stage : ', hyper_params["stage"])
                 print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
-            
-            experiment.log_metric("train_loss", train_loss)
-            experiment.log_metric("val_loss", val_loss)
 
             if val_loss < min_val :
                 # print('saving model')
