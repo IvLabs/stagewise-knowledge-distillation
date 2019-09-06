@@ -8,8 +8,8 @@ def res_block_with_depth(n_in, n_out, n_basic_blocks=1, depth=1, dense:bool=Fals
     norm2 = norm_type
     if not dense and (norm_type==NormType.Batch): norm2 = NormType.BatchZero
     layer1 = [conv_layer(n_in, n_out, norm_type=norm_type, stride=(2, 2), **conv_kwargs)]
+    if n_basic_blocks == 0 : return layer1[0]
     layers = [res_block(n_out, depth=depth) for _ in range(n_basic_blocks)]
-    if len(layers) == 0: return layer1
     return SequentialEx(*(layer1+layers))
 
 def res_block(nf, depth=1, dense:bool=False, norm_type:Optional[NormType]=NormType.Batch, **conv_kwargs):
