@@ -34,10 +34,8 @@ class SaveFeatures :
     def remove(self) :
         self.handle.remove()
     
-for repeated in range(3, 5) : 
+for repeated in range(5) : 
     for stage in range(4) :
-        if repeated == 3 and stage == 0 : 
-            continue
         torch.manual_seed(repeated)
         torch.cuda.manual_seed(repeated)
 

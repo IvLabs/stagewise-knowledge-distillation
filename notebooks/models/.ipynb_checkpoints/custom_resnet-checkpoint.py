@@ -149,6 +149,8 @@ class ResNet(nn.Module):
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = AdaptiveConcatPool2d(1)
         self.fc = nn.Linear(1024 * block.expansion, (1024 * block.expansion) // 4)
+        # Used separate `self.relu2` so that forward hook can be registered uniquely
+        self.relu2 = nn.ReLU(inplace=True)
         self.fc2 = nn.Linear((1024 * block.expansion) // 4, num_classes)
 
         for m in self.modules():
@@ -195,7 +197,8 @@ class ResNet(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
-        x = self.relu(x)
+        # Used separate `self.relu2` so that forward hook can be registered uniquely
+        x = self.relu2(x)
         x = self.maxpool(x)
 
         x = self.layer1(x)
@@ -206,6 +209,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)
+        x = self.relu(x)
         x = self.fc2(x)
 
         return x
