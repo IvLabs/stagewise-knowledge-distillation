@@ -77,4 +77,5 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
-| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | N/A | N/A |
+| Student model trained using data only | 93.4 | N/A |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 98.2 | N/A |
