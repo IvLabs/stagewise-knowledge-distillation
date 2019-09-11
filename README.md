@@ -10,7 +10,9 @@ baseline : https://arxiv.org/abs/1412.6550
 - [x] train one block at a time of student, then train classifier part on data (works better)
 - [x] Use smaller dataset for knowledge distillation
 - [x] repeat each one five times
-- [ ] Use bigger resnets as teachers (e.g Teacher: ResNet101, Student: ResNet34, ResNet18)
+- [x] Use bigger resnets as teachers (done with ResNet50)
+- [ ] Use smaller dataset for training and test it on bigger dataset (training dataset is 1/4 of the original dataset rest is for testing).
+- [ ] If the above step doesn't work out, create the student network by cutting a pretrained network on ImageNet dataset. 
 - [ ] compare with pruning and other such algos
 
 ### Secondary Aims:
