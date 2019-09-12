@@ -61,7 +61,7 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 
 ### ResNet50 Teacher Model
 - Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets 98.2 % validation accuracy
-#### Following results are for the `ResNet50` teacher model and [this student model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/large_model.py) :
+#### [Small ResNet50-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/large_model.py) :
 
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
