@@ -45,6 +45,8 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 #### Following results are for the `ResNet34` teacher model and [this student model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
 
 - Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets 93.6 % validation accuracy.
+- Experiments on subset of training data (1 / 4th of the original training data) also have Test set which is remaining (3 / 4th of the original training data). 
+- Note that teacher model gets 98.02 % test accuracy (3 / 4th of original training data (since the teacher was actually trained on that subset)).
 
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
@@ -53,6 +55,8 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | Student model trained using 4 feature maps from teacher and also using data | 88.6, 88.6, 89.6, 89.2, 89.6 | 89.12 +- 0.45 |
 | Student model trained using 3 feature maps from teacher and also using data | 88.0, 89.4, 91.4, 89.2, 90.2 | 89.64 +- 1.12 |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 94.2, 93.6, 93.8, 93.8, 94.2 | 93.92 +- 0.24 |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using subset of training data | 91.8 (91.51 test acc) | N/A |
+| Student model trained using only subset of training data | 82.4 (77.45 test acc) | N/A |
 
 #### Following results are for the `ResNet34` teacher model and [this student model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/small_model.py) :
 

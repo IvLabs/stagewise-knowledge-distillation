@@ -1,20 +1,47 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
-from models.custom_resnet import _resnet, Bottleneck
 torch.cuda.set_device(0)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
 
 path = untar_data(URLs.IMAGENETTE)
-
-batch_size = 32
+new_path = path/'new'
+batch_size = 64
 tfms = get_transforms(do_flip=False)
-data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = batch_size, size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = batch_size, size = 224, ds_tfms = tfms).normalize(imagenet_stats)
 
-net = _resnet('resnet50', Bottleneck, [2, 2, 2, 1], pretrained = False, progress = False)
-net.cpu()
-net.load_state_dict(torch.load('../saved_models/large_no_teacher/model0.pt', map_location = 'cpu'))
+class Flatten(nn.Module):
+    def forward(self, input):
+        return input.view(input.size(0), -1)
+
+def conv2(ni, nf) : 
+    return conv_layer(ni, nf, stride = 2)
+
+class ResBlock(nn.Module):
+    def __init__(self, nf):
+        super().__init__()
+        self.conv1 = conv_layer(nf, nf)
+        
+    def forward(self, x): 
+        return (x + self.conv1(x))
+
+def conv_and_res(ni, nf): 
+    return nn.Sequential(conv2(ni, nf), ResBlock(nf))
+
+def conv_(nf) : 
+    return nn.Sequential(conv_layer(nf, nf), ResBlock(nf))
+    
+net = nn.Sequential(
+    conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
+    nn.MaxPool2d(3, 2, padding = 1),
+    conv_(64),
+    conv_and_res(64, 128),
+    conv_and_res(128, 256),
+    conv_and_res(256, 512),
+    AdaptiveConcatPool2d(),
+    Flatten(),
+    nn.Linear(2 * 512, 256),
+    nn.Linear(256, 10)
+)
 
 if torch.cuda.is_available() : 
     net = net.cuda()
@@ -80,8 +107,8 @@ for epoch in range(num_epochs):
 #         torch.nn.utils.clip_grad_value_(net.parameters(), 10)
         optimizer.step()
 
-#         if i % 50 == 49 :
-#             print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
+        if i % 20 == 19 :
+            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)
@@ -111,18 +138,18 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/large_no_teacher/model1.pt')
+        torch.save(net.state_dict(), '../saved_models/less_data_medium_no_teacher/model0.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/large_no_teacher/model1.pt'))
+net.load_state_dict(torch.load('../saved_models/less_data_medium_no_teacher/model0.pt'))
 _get_accuracy(data.valid_dl, net)
 
 # plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')
 # plt.plot(range(100), val_loss_list, 'b', label = 'validation_loss')
 # plt.legend()
-# plt.savefig('../figures/small_no_teacher/training_losses4.jpg')
+# plt.savefig('../figures/medium_no_teacher/training_losses3.jpg')
 # plt.close()
 
 # plt.plot(range(100), val_acc_list, 'r', label = 'validation_accuracy')
 # plt.legend()
-# plt.savefig('../figures/small_no_teacher/validation_acc4.jpg')
+# plt.savefig('../figures/medium_no_teacher/validation_acc3.jpg')

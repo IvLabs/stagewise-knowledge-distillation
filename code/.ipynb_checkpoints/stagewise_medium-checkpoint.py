@@ -34,7 +34,7 @@ class SaveFeatures :
     def remove(self) :
         self.handle.remove()
     
-for repeated in range(3, 5) : 
+for repeated in range(0, 1) : 
     for stage in range(5) :
         torch.manual_seed(repeated)
         torch.cuda.manual_seed(repeated)
@@ -45,7 +45,7 @@ for repeated in range(3, 5) :
             "repeated": repeated,
             "num_classes": 10,
             "batch_size": 64,
-            "num_epochs": 100,
+            "num_epochs": 2,
             "learning_rate": 1e-4
         }
         
@@ -100,7 +100,7 @@ for repeated in range(3, 5) :
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4], net[5]]]
         
         experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu",
-                        project_name="kd0", workspace="akshaykvnit")
+                        project_name="less-data-kd0", workspace="akshaykvnit")
         experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
             filename = '../saved_models/stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
@@ -133,8 +133,8 @@ for repeated in range(3, 5) :
         #         torch.nn.utils.clip_grad_value_(net.parameters(), 10)
                 optimizer.step()
 
-                if i % 50 == 49 :
-                    print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 6))
+                # if i % 50 == 49 :
+                    # print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 6))
 
             train_loss = (sum(trn) / len(trn))
             train_loss_list.append(train_loss)
@@ -158,12 +158,15 @@ for repeated in range(3, 5) :
 
             val_loss = sum(val) / len(val)
             val_loss_list.append(val_loss)
-            print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
-            print('repetition : ', hyper_params["repeated"], ' | stage : ', hyper_params["stage"])
+            
+            if (epoch + 1) % 5 == 0 : 
+                print('repetition : ', hyper_params["repeated"], ' | stage : ', hyper_params["stage"])
+                print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
+            
             experiment.log_metric("train_loss", train_loss)
             experiment.log_metric("val_loss", val_loss)
 
             if val_loss < min_val :
-                print('saving model')
+                # print('saving model')
                 min_val = val_loss
                 torch.save(net.state_dict(), filename)

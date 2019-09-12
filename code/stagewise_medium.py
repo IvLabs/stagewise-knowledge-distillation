@@ -34,7 +34,7 @@ class SaveFeatures :
     def remove(self) :
         self.handle.remove()
     
-for repeated in range(3, 5) : 
+for repeated in range(0, 1) : 
     for stage in range(5) :
         torch.manual_seed(repeated)
         torch.cuda.manual_seed(repeated)
@@ -45,7 +45,7 @@ for repeated in range(3, 5) :
             "repeated": repeated,
             "num_classes": 10,
             "batch_size": 64,
-            "num_epochs": 100,
+            "num_epochs": 2,
             "learning_rate": 1e-4
         }
         
@@ -100,7 +100,7 @@ for repeated in range(3, 5) :
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4], net[5]]]
         
         experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu",
-                        project_name="kd0", workspace="akshaykvnit")
+                        project_name="less-data-kd0", workspace="akshaykvnit")
         experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
             filename = '../saved_models/stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
