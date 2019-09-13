@@ -1,9 +1,12 @@
-
 import matplotlib.pyplot as plt
 from fastai.vision import *
 import torch
 from torchsummary import summary
+from utils import _get_accuracy
 torch.cuda.set_device(0)
+
+batch_size = 64
+num_epochs = 100
 
 class Flatten(nn.Module) :
     def forward(self, input):
@@ -34,7 +37,7 @@ class SaveFeatures :
     def remove(self) :
         self.handle.remove()
     
-for repeated in range(5) : 
+for repeated in range(0, 1) : 
     for stage in range(4) :
         torch.manual_seed(repeated)
         torch.cuda.manual_seed(repeated)
@@ -44,17 +47,17 @@ for repeated in range(5) :
             "stage": stage,
             "repeated": repeated,
             "num_classes": 10,
-            "batch_size": 64,
-            "num_epochs": 100,
+            "batch_size": batch_size,
+            "num_epochs": num_epochs,
             "learning_rate": 1e-4
         }
         
-        path = untar_data(URLs.IMAGENETTE)
+        path = untar_data(URLs.IMAGEWOOF)
         tfms = get_transforms(do_flip = False)
         data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = hyper_params["batch_size"], size = 224, ds_tfms = tfms).normalize(imagenet_stats)
         
         learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-        learn = learn.load('unfreeze_imagenet_bs64')
+        learn = learn.load('resnet34_imagewoof_bs64')
         learn.freeze()
         # learn.summary()
 
@@ -73,14 +76,14 @@ for repeated in range(5) :
         net.cpu()
         # no need to load model for 0th stage training
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         # separate if conditions for stage 1 and others because of irregular naming convention
         # in the student model.
         elif hyper_params['stage'] == 1 : 
-            filename = '../saved_models/small_stage0/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/imagewoof/small_stage0/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         else : 
-            filename = '../saved_models/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         
         if torch.cuda.is_available() : 
@@ -99,9 +102,9 @@ for repeated in range(5) :
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4]]]
         
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         else : 
-            filename = '../saved_models/small_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
         optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
         total_step = len(data.train_ds) // hyper_params["batch_size"]
         train_loss_list = list()
@@ -126,7 +129,6 @@ for repeated in range(5) :
 
                 optimizer.zero_grad()
                 loss.backward()
-        #         torch.nn.utils.clip_grad_value_(net.parameters(), 10)
                 optimizer.step()
 
                 # if i % 50 == 49 :
@@ -163,3 +165,105 @@ for repeated in range(5) :
                 # print('saving model')
                 min_val = val_loss
                 torch.save(net.state_dict(), filename)
+
+    # Classifier training
+    torch.manual_seed(repeated)
+    torch.cuda.manual_seed(repeated)
+
+    # stage should be in 0 to 4 (4 for classifier stage)
+    hyper_params = {
+        "stage": 4,
+        "repeated": repeated,
+        "num_classes": 10,
+        "batch_size": batch_size,
+        "num_epochs": num_epochs,
+        "learning_rate": 1e-4
+    }
+
+    path = untar_data(URLs.IMAGEWOOF)
+    tfms = get_transforms(do_flip=False)
+    data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = hyper_params["batch_size"], size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+
+    net = nn.Sequential(
+        conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
+        nn.MaxPool2d(3, 2, padding = 1),
+        conv_(64),
+        conv_and_res(64, 128),
+        conv_and_res(128, 256),
+        AdaptiveConcatPool2d(),
+        Flatten(),
+        nn.Linear(2 * 256, 128),
+        nn.Linear(128, hyper_params["num_classes"])
+    )
+
+    net.cpu()
+    filename = '../saved_models/imagewoof/small_stage4/model' + str(repeated) + '.pt'
+    net.load_state_dict(torch.load(filename, map_location = 'cpu'))
+
+    if torch.cuda.is_available() : 
+        net = net.cuda()
+
+    for name, param in net.named_parameters() : 
+        param.requires_grad = False
+        if name[0] == '7' or name[0] == '8':
+            param.requires_grad = True
+        
+    optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
+    total_step = len(data.train_ds) // hyper_params["batch_size"]
+    train_loss_list = list()
+    val_loss_list = list()
+    min_val = 0
+    savename = '../saved_models/imagewoof/small_classifier/model' + str(repeated) + '.pt'
+    for epoch in range(hyper_params["num_epochs"]):
+        trn = []
+        net.train()
+        for i, (images, labels) in enumerate(data.train_dl) :
+            if torch.cuda.is_available():
+                images = torch.autograd.Variable(images).cuda().float()
+                labels = torch.autograd.Variable(labels).cuda()
+            else : 
+                images = torch.autograd.Variable(images).float()
+                labels = torch.autograd.Variable(labels)
+
+            y_pred = net(images)
+
+            loss = F.cross_entropy(y_pred, labels)
+            trn.append(loss.item())
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # if i % 50 == 49 :
+                # print('epoch = ', epoch, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', loss.item())
+
+        train_loss = (sum(trn) / len(trn))
+        train_loss_list.append(train_loss)
+
+        net.eval()
+        val = []
+        with torch.no_grad() :
+            for i, (images, labels) in enumerate(data.valid_dl) :
+                if torch.cuda.is_available():
+                    images = torch.autograd.Variable(images).cuda().float()
+                    labels = torch.autograd.Variable(labels).cuda()
+                else : 
+                    images = torch.autograd.Variable(images).float()
+                    labels = torch.autograd.Variable(labels)
+
+                # Forward pass
+                y_pred = net(images)
+
+                loss = F.cross_entropy(y_pred, labels)
+                val.append(loss.item())
+
+        val_loss = sum(val) / len(val)
+        val_loss_list.append(val_loss)
+        val_acc = _get_accuracy(data.valid_dl, net)
+
+        print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6), ' | VA : ', round(val_acc * 100, 6))
+
+        if (val_acc * 100) > min_val :
+            print('saving model')
+            min_val = val_acc * 100
+            torch.save(net.state_dict(), savename)

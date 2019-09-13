@@ -1,9 +1,12 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
-torch.cuda.set_device(0)
+from utils import _get_accuracy
+torch.cuda.set_device(1)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
 
-path = untar_data(URLs.IMAGENETTE)
+path = untar_data(URLs.IMAGEWOOF)
 
 batch_size = 64
 tfms = get_transforms(do_flip=False)
@@ -46,37 +49,6 @@ if torch.cuda.is_available() :
     net = net.cuda()
     print('Model on GPU')
 
-def _get_accuracy(dataloader, Net):
-    total = 0
-    correct = 0
-    Net.eval()
-    for i, (images, labels) in enumerate(dataloader):
-        images = torch.autograd.Variable(images).float()
-        labels = torch.autograd.Variable(labels).float()
-        
-        if torch.cuda.is_available() : 
-            images = images.cuda()
-            labels = labels.cuda()
-
-        outputs = Net.forward(images)
-        outputs = F.log_softmax(outputs, dim = 1)
-
-        _, pred_ind = torch.max(outputs, 1)
-        
-        # converting to numpy arrays
-        labels = labels.data.cpu().numpy()
-        pred_ind = pred_ind.data.cpu().numpy()
-        
-        # get difference
-        diff_ind = labels - pred_ind
-        # correctly classified will be 1 and will get added
-        # incorrectly classified will be 0
-        correct += np.count_nonzero(diff_ind == 0)
-        total += len(diff_ind)
-
-    accuracy = correct / total
-    return accuracy
-
 optimizer = torch.optim.Adam(net.parameters(), lr = 1e-4)
 
 num_epochs = 100
@@ -103,11 +75,10 @@ for epoch in range(num_epochs):
 
         optimizer.zero_grad()
         loss.backward()
-#         torch.nn.utils.clip_grad_value_(net.parameters(), 10)
         optimizer.step()
 
-        if i % 50 == 49 :
-            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
+        # if i % 50 == 49 :
+        #     print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)
@@ -137,18 +108,8 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/small_no_teacher/model4.pt')
+        torch.save(net.state_dict(), '../saved_models/imagewoof/small_no_teacher/model0.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/small_no_teacher/model4.pt'))
+net.load_state_dict(torch.load('../saved_models/imagewoof/small_no_teacher/model0.pt'))
 _get_accuracy(data.valid_dl, net)
-
-plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')
-plt.plot(range(100), val_loss_list, 'b', label = 'validation_loss')
-plt.legend()
-plt.savefig('../figures/small_no_teacher/training_losses4.jpg')
-plt.close()
-
-plt.plot(range(100), val_acc_list, 'r', label = 'validation_accuracy')
-plt.legend()
-plt.savefig('../figures/small_no_teacher/validation_acc4.jpg')

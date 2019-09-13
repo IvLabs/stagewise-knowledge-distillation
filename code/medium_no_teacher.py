@@ -1,6 +1,8 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
+from utils import _get_accuracy
+from core import Flatten, conv_, conv_and_res
 torch.cuda.set_device(1)
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
@@ -11,27 +13,6 @@ batch_size = 64
 tfms = get_transforms(do_flip=False)
 data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = batch_size, size = 224, ds_tfms = tfms).normalize(imagenet_stats)
 
-class Flatten(nn.Module):
-    def forward(self, input):
-        return input.view(input.size(0), -1)
-
-def conv2(ni, nf) : 
-    return conv_layer(ni, nf, stride = 2)
-
-class ResBlock(nn.Module):
-    def __init__(self, nf):
-        super().__init__()
-        self.conv1 = conv_layer(nf, nf)
-        
-    def forward(self, x): 
-        return (x + self.conv1(x))
-
-def conv_and_res(ni, nf): 
-    return nn.Sequential(conv2(ni, nf), ResBlock(nf))
-
-def conv_(nf) : 
-    return nn.Sequential(conv_layer(nf, nf), ResBlock(nf))
-    
 net = nn.Sequential(
     conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
     nn.MaxPool2d(3, 2, padding = 1),
@@ -48,37 +29,6 @@ net = nn.Sequential(
 if torch.cuda.is_available() : 
     net = net.cuda()
     print('Model on GPU')
-
-def _get_accuracy(dataloader, Net):
-    total = 0
-    correct = 0
-    Net.eval()
-    for i, (images, labels) in enumerate(dataloader):
-        images = torch.autograd.Variable(images).float()
-        labels = torch.autograd.Variable(labels).float()
-        
-        if torch.cuda.is_available() : 
-            images = images.cuda()
-            labels = labels.cuda()
-
-        outputs = Net.forward(images)
-        outputs = F.log_softmax(outputs, dim = 1)
-
-        _, pred_ind = torch.max(outputs, 1)
-        
-        # converting to numpy arrays
-        labels = labels.data.cpu().numpy()
-        pred_ind = pred_ind.data.cpu().numpy()
-        
-        # get difference
-        diff_ind = labels - pred_ind
-        # correctly classified will be 1 and will get added
-        # incorrectly classified will be 0
-        correct += np.count_nonzero(diff_ind == 0)
-        total += len(diff_ind)
-
-    accuracy = correct / total
-    return accuracy
 
 optimizer = torch.optim.Adam(net.parameters(), lr = 1e-4)
 

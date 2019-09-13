@@ -36,7 +36,7 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 ### ResNet34 Teacher Model :
 - Teacher model is pretrained on ImageNet and gets 93.6 % validation accuracy on Imagenette.
 #### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
-- Experiments on subset of training data (1 / 4th of the original training data) also have Test set which is remaining (3 / 4th of the original training data). 
+- Experiments on subset of training data (1 / 4th of the original training data) also have Test set which is the remaining data (3 / 4th of the original training data). 
 - Note that teacher model gets 98.02 % accuracy on that 3 / 4th of original training data. Since the teacher was actually trained on the entire original training data (as Imagenette is a subset of ImageNet), so it is justified that the value is so high.
 
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
@@ -71,9 +71,19 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 ## Results using Imagewoof :
 Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
 ### ResNet34 Teacher Model :
-- Teacher model is pretrained on ImageNet and gets 93.6 % validation accuracy on Imagenette.
+- Teacher model is pretrained on Imagewoof and gets 91.4 % validation accuracy on Imagenette.
 #### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
+- Experiments on subset of training data (1 / 4th of the original training data) also have Test set which is the remaining data (3 / 4th of the original training data). 
+- Note that teacher model gets 97.15 % accuracy on that 3 / 4th of original training data. Since the teacher was actually trained on the entire original training data, so it is justified that the value is so high.
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 73.8 | N/A |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 87.0 | N/A |
+| Student model trained using only subset of training data | 57.6 (54.63 test acc) | N/A |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using subset of training data | 80.2 (77.32 test acc) | N/A |
+
+#### [Small-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/small_model.py) :
+| Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
+| --------------|------------------------------------| ------------- |
+| Student model trained using data only | 74.6 | N/A |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 76.8 | N/A |

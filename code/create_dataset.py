@@ -7,7 +7,7 @@ NUM_ = 325
 
 random.seed(1)
 
-data = untar_data(URLs.IMAGENETTE)
+data = untar_data(URLs.IMAGEWOOF)
 
 new_data = data/"new"
 new_data.mkdir(exist_ok = True)
