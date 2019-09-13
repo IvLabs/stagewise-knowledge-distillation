@@ -1,15 +1,13 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
-torch.cuda.set_device(1)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
+torch.cuda.set_device(0)
 
-path = untar_data(URLs.IMAGEWOOF)
-
+path = untar_data(URLs.IMAGENETTE)
+new_path = path/'new'
 batch_size = 64
 tfms = get_transforms(do_flip=False)
-data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = batch_size, size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = batch_size, size = 224, ds_tfms = tfms).normalize(imagenet_stats)
 
 class Flatten(nn.Module):
     def forward(self, input):
@@ -109,8 +107,8 @@ for epoch in range(num_epochs):
 #         torch.nn.utils.clip_grad_value_(net.parameters(), 10)
         optimizer.step()
 
-#         if i % 50 == 49 :
-#             print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
+        if i % 20 == 19 :
+            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)
@@ -140,10 +138,10 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/imagewoof/medium_no_teacher/model0.pt')
+        torch.save(net.state_dict(), '../saved_models/less_data_medium_no_teacher/model0.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/imagewoof/medium_no_teacher/model0.pt'))
+net.load_state_dict(torch.load('../saved_models/less_data_medium_no_teacher/model0.pt'))
 _get_accuracy(data.valid_dl, net)
 
 # plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')

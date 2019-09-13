@@ -1,9 +1,11 @@
 from fastai.vision import *
 import torch
 from torchsummary import summary
-torch.cuda.set_device(1)
+torch.cuda.set_device(0)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
 
-path = untar_data(URLs.IMAGENETTE)
+path = untar_data(URLs.IMAGEWOOF)
 
 batch_size = 64
 tfms = get_transforms(do_flip=False)
@@ -107,8 +109,8 @@ for epoch in range(num_epochs):
 #         torch.nn.utils.clip_grad_value_(net.parameters(), 10)
         optimizer.step()
 
-        if i % 50 == 49 :
-            print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
+#         if i % 50 == 49 :
+#             print('epoch = ', epoch + 1, ' step = ', i + 1, ' of total steps ', total_step, ' loss = ', round(loss.item(), 4))
             
     train_loss = (sum(trn) / len(trn))
     train_loss_list.append(train_loss)
@@ -138,18 +140,18 @@ for epoch in range(num_epochs):
     if (val_acc * 100) > min_val :
         print('saving model')
         min_val = val_acc * 100
-        torch.save(net.state_dict(), '../saved_models/medium_no_teacher/model.pt')
+        torch.save(net.state_dict(), '../saved_models/imagewoof/medium_no_teacher/model0.pt')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/medium_no_teacher/model.pt'))
+net.load_state_dict(torch.load('../saved_models/imagewoof/medium_no_teacher/model0.pt'))
 _get_accuracy(data.valid_dl, net)
 
-plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')
-plt.plot(range(100), val_loss_list, 'b', label = 'validation_loss')
-plt.legend()
-plt.savefig('../figures/medium_no_teacher/training_losses.jpg')
-plt.close()
+# plt.plot(range(100), train_loss_list, 'r', label = 'training_loss')
+# plt.plot(range(100), val_loss_list, 'b', label = 'validation_loss')
+# plt.legend()
+# plt.savefig('../figures/medium_no_teacher/training_losses3.jpg')
+# plt.close()
 
-plt.plot(range(100), val_acc_list, 'r', label = 'validation_accuracy')
-plt.legend()
-plt.savefig('../figures/medium_no_teacher/validation_acc.jpg')
+# plt.plot(range(100), val_acc_list, 'r', label = 'validation_accuracy')
+# plt.legend()
+# plt.savefig('../figures/medium_no_teacher/validation_acc3.jpg')

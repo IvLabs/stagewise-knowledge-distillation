@@ -11,8 +11,9 @@ baseline : https://arxiv.org/abs/1412.6550
 - [x] Use smaller dataset for knowledge distillation
 - [x] repeat each one five times
 - [x] Use bigger resnets as teachers (done with ResNet50)
-- [ ] Use smaller dataset for training and test it on bigger dataset (training dataset is 1/4 of the original dataset rest is for testing).
+- [x] Use smaller dataset for training and test it on bigger dataset (training dataset is 1/4 of the original dataset rest is for testing).
 - [ ] If the above step doesn't work out, create the student network by cutting a pretrained network on ImageNet dataset. 
+- [ ] Repeat experiments using Imagewoof (since it presents a more difficult classification problem compared to Imagenette). 
 - [ ] compare with pruning and other such algos
 
 ### Secondary Aims:
@@ -30,9 +31,8 @@ Need to test two things:
 
   
 
-## Preliminary Results :
-Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. The `n` feature maps of teacher model used for training student model are the first `n` feature maps (all of distinct shapes) output by the teacher model.
-
+## Results using Imagenette :
+Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
 ### ResNet34 Teacher Model :
 - Teacher model is pretrained on ImageNet and gets 93.6 % validation accuracy on Imagenette.
 #### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
@@ -67,3 +67,13 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 93.4 | N/A |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 98.2 | N/A |
+
+## Results using Imagewoof :
+Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
+### ResNet34 Teacher Model :
+- Teacher model is pretrained on ImageNet and gets 93.6 % validation accuracy on Imagenette.
+#### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
+| Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
+| --------------|------------------------------------| ------------- |
+| Student model trained using data only | 73.8 | N/A |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 87.0 | N/A |
