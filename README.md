@@ -9,11 +9,11 @@ baseline : https://arxiv.org/abs/1412.6550
 - [x] try using different sized networks (keep decreasing the size of the network, take it where there is a big difference of accuracy between teacher and
 - [x] train one block at a time of student, then train classifier part on data (works better)
 - [x] Use smaller dataset for knowledge distillation
-- [x] repeat each one five times
 - [x] Use bigger resnets as teachers (done with ResNet50)
 - [x] Use smaller dataset for training and test it on bigger dataset (training dataset is 1/4 of the original dataset rest is for testing).
 - [ ] If the above step doesn't work out, create the student network by cutting a pretrained network on ImageNet dataset. 
-- [ ] Repeat experiments using Imagewoof (since it presents a more difficult classification problem compared to Imagenette). 
+- [x] Repeat experiments using Imagewoof (since it presents a more difficult classification problem compared to Imagenette). 
+- [ ] Repeat each experiment 5 times with different random seeds.
 - [ ] compare with pruning and other such algos
 
 ### Secondary Aims:
@@ -75,6 +75,7 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 #### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
 - Experiments on subset of training data (1 / 4th of the original training data) also have Test set which is the remaining data (3 / 4th of the original training data). 
 - Note that teacher model gets 97.15 % accuracy on that 3 / 4th of original training data. Since the teacher was actually trained on the entire original training data, so it is justified that the value is so high.
+
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 73.8 | N/A |
