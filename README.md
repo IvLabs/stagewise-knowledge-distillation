@@ -71,7 +71,7 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 ## Results using Imagewoof :
 Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
 ### ResNet34 Teacher Model :
-- Teacher model is pretrained on Imagewoof and gets 91.4 % validation accuracy on Imagenette.
+- Teacher model is pretrained on Imagewoof and gets 91.4 % validation accuracy on Imagewoof.
 #### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
 - Experiments on subset of training data (1 / 4th of the original training data) also have Test set which is the remaining data (3 / 4th of the original training data). 
 - Note that teacher model gets 97.15 % accuracy on that 3 / 4th of original training data. Since the teacher was actually trained on the entire original training data, so it is justified that the value is so high.
@@ -88,3 +88,18 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 74.6 | N/A |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 76.8 | N/A |
+<<<<<<< Updated upstream
+=======
+
+## Results using CIFAR10 :
+Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
+
+### ResNet34 Teacher Model :
+- Teacher model is pretrained on CIFAR10 and gets 87.05 % validation accuracy on Imagewoof.
+
+#### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
+| Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
+| --------------|------------------------------------| ------------- |
+| Student model trained using data only | 75.31 | N/A |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | N/A | N/A |
+>>>>>>> Stashed changes

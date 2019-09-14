@@ -222,7 +222,6 @@ for repeated in range(0, 1) :
 
             optimizer.zero_grad()
             loss.backward()
-    #         torch.nn.utils.clip_grad_value_(net.parameters(), 10)
             optimizer.step()
 
             #if i % 50 == 49 :
