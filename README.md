@@ -88,8 +88,6 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 74.6 | N/A |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 76.8 | N/A |
-<<<<<<< Updated upstream
-=======
 
 ## Results using CIFAR10 :
 Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
@@ -102,4 +100,3 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 75.31 | N/A |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | N/A | N/A |
->>>>>>> Stashed changes
