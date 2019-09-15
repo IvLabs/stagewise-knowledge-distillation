@@ -7,8 +7,13 @@ from utils import _get_accuracy
 from core import Flatten, conv_, conv_and_res, SaveFeatures
 torch.cuda.set_device(0)
 
+val = 'val'
+sz = 224
+stats = imagenet_stats
 epochs = 100
 batch_size = 64
+dataset = 'cifar10'
+path = untar_data(URLs.CIFAR)
 
 for repeated in range(0, 1) : 
     for stage in range(5) :
@@ -17,6 +22,7 @@ for repeated in range(0, 1) :
 
         # stage should be in 0 to 5 (5 for classifier stage)
         hyper_params = {
+            "dataset": dataset,
             "stage": stage,
             "repeated": repeated,
             "num_classes": 10,
@@ -25,13 +31,17 @@ for repeated in range(0, 1) :
             "learning_rate": 1e-4
         }
         
-        path = untar_data(URLs.IMAGEWOOF)
         new_path = path/'new'
         tfms = get_transforms(do_flip=False)
-        data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+
+        if hyper_params['dataset'] == 'cifar10' : 
+            sz = 32
+            stats = cifar_stats
+
+        data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
         
         learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-        learn = learn.load('/home/akshay/.fastai/data/imagewoof/models/resnet34_imagewoof_bs64')
+        learn = learn.load('/home/akshay/.fastai/data/cifar10/models/resnet34_cifar_bs64')
         learn.freeze()
 
         net = nn.Sequential(
@@ -50,14 +60,14 @@ for repeated in range(0, 1) :
         net.cpu()
         # no need to load model for 0th stage training
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/imagewoof/less_data_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         # separate if conditions for stage 1 and others because of irregular naming convention
         # in the student model.
         elif hyper_params['stage'] == 1 : 
-            filename = '../saved_models/imagewoof/less_data_stage0/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_stage0/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         else : 
-            filename = '../saved_models/imagewoof/less_data_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         
         if torch.cuda.is_available() : 
@@ -76,12 +86,12 @@ for repeated in range(0, 1) :
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4], net[5]]]
         
         experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu",
-                        project_name="less-data-kd1", workspace="akshaykvnit")
+                        project_name="less-data-kd2", workspace="akshaykvnit")
         experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/imagewoof/less_data_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         else : 
-            filename = '../saved_models/imagewoof/less_data_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
         optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
         total_step = len(data.train_ds) // hyper_params["batch_size"]
         train_loss_list = list()
@@ -153,6 +163,7 @@ for repeated in range(0, 1) :
 
     # stage should be in 0 to 5 (5 for classifier stage)
     hyper_params = {
+        "dataset": dataset,
         "stage": 5,
         "repeated": repeated,
         "num_classes": 10,
@@ -161,13 +172,17 @@ for repeated in range(0, 1) :
         "learning_rate": 1e-4
     }
 
-    path = untar_data(URLs.IMAGEWOOF)
     new_path = path/'new'
     tfms = get_transforms(do_flip=False)
-    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+
+    if hyper_params['dataset'] == 'cifar10' : 
+            sz = 32
+            stats = cifar_stats
+
+    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
 
     learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-    learn = learn.load('/home/akshay/.fastai/data/imagewoof/models/resnet34_imagewoof_bs64')
+    learn = learn.load('/home/akshay/.fastai/data/cifar10/models/resnet34_cifar_bs64')
     learn.freeze()
 
     net = nn.Sequential(
@@ -184,7 +199,7 @@ for repeated in range(0, 1) :
     )
 
     net.cpu()
-    filename = '../saved_models/imagewoof/less_data_stage5/model' + str(repeated) + '.pt'
+    filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_stage5/model' + str(repeated) + '.pt'
     net.load_state_dict(torch.load(filename, map_location = 'cpu'))
 
     if torch.cuda.is_available() : 
@@ -196,14 +211,14 @@ for repeated in range(0, 1) :
             param.requires_grad = True
         
     experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu",
-                        project_name="less-data-kd1", workspace="akshaykvnit")
+                        project_name="less-data-kd2", workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]
     train_loss_list = list()
     val_loss_list = list()
     min_val = 0
-    savename = '../saved_models/imagewoof/less_data_classifier/model' + str(repeated) + '.pt'
+    savename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_classifier/model' + str(repeated) + '.pt'
     for epoch in range(hyper_params["num_epochs"]):
         trn = []
         net.train()

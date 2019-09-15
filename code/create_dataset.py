@@ -3,11 +3,11 @@ from pathlib import Path
 from fastai.vision import *
 import shutil
 import random
-NUM_ = 325
+NUM_ = 1250
 
 random.seed(1)
 
-data = untar_data(URLs.IMAGEWOOF)
+data = untar_data(URLs.CIFAR)
 
 new_data = data/"new"
 new_data.mkdir(exist_ok = True)
@@ -18,7 +18,7 @@ except :
     test = new_data/"test"
     
 try : 
-    val = shutil.copytree(data/"val", new_data/"val")
+    val = shutil.copytree(data/"test", new_data/"val")
 except : 
     val = new_data/"val"
 

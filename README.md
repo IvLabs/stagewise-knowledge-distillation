@@ -100,3 +100,5 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 75.31 | N/A |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 82.19 | N/A |
+| Student model trained using only subset of training data | 61.45 (62.11 test acc) | N/A |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using subset of training data | 77.27 (79.10 test acc) | N/A |
