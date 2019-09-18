@@ -11,13 +11,17 @@ sz = 224
 stats = imagenet_stats
 num_epochs = 100
 batch_size = 64
-dataset = 'cifar10'
-path = untar_data(URLs.CIFAR)
+dataset = 'imagenette'
+path = untar_data(URLs.IMAGENETTE)
 
-for repeated in range(0, 1) : 
+for repeated in range(0, 5) : 
     for stage in range(5) :
         torch.manual_seed(repeated)
         torch.cuda.manual_seed(repeated)
+
+        val = 'val'
+        sz = 224
+        stats = imagenet_stats
 
         # stage should be in 0 to 5 (5 for classifier stage)
         hyper_params = {
@@ -31,16 +35,17 @@ for repeated in range(0, 1) :
         }
         
         tfms = get_transforms(do_flip=False)
-
+        load_name = str(hyper_params['dataset'])
         if hyper_params['dataset'] == 'cifar10' : 
             val = 'test'
             sz = 32
             stats = cifar_stats
+            load_name = str(hyper_params['dataset'])[ : -2]
 
         data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
         
         learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-        learn = learn.load('resnet34_' + str(hyper_params['dataset'])[ : -2] + '_bs64')
+        learn = learn.load('resnet34_' + load_name + '_bs64')
         learn.freeze()
 
         net = nn.Sequential(
@@ -84,7 +89,7 @@ for repeated in range(0, 1) :
         sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4], net[5]]]
         
-        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd2", workspace="akshaykvnit")
+        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd4", workspace="akshaykvnit")
         experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
             filename = '../saved_models/' + str(hyper_params['dataset']) + '/stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
@@ -159,6 +164,9 @@ for repeated in range(0, 1) :
     # Classifier training
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
+    val = 'val'
+    sz = 224
+    stats = imagenet_stats
 
     # stage should be in 0 to 5 (5 for classifier stage)
     hyper_params = {
@@ -170,17 +178,18 @@ for repeated in range(0, 1) :
         "num_epochs": num_epochs,
         "learning_rate": 1e-4
     }
-    
+    load_name = str(hyper_params['dataset'])
     tfms = get_transforms(do_flip=False)
     if hyper_params['dataset'] == 'cifar10' : 
         val = 'test'
         sz = 32
         stats = cifar_stats
+        load_name = str(hyper_params['dataset'])[ : -2]
 
     data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
 
     learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-    learn = learn.load('resnet34_' + str(hyper_params['dataset'])[ : -2] + '_bs64')
+    learn = learn.load('resnet34_' + load_name + '_bs64')
     learn.freeze()
     # learn.summary()
 
@@ -209,7 +218,7 @@ for repeated in range(0, 1) :
         if name[0] == '8' or name[0] == '9':
             param.requires_grad = True
         
-    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd2", workspace="akshaykvnit")
+    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd4", workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]

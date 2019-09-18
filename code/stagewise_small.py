@@ -1,49 +1,31 @@
-import matplotlib.pyplot as plt
+from comet_ml import Experiment
 from fastai.vision import *
 import torch
 from torchsummary import summary
 from utils import _get_accuracy
+from core import Flatten, conv_, conv_and_res, SaveFeatures
 torch.cuda.set_device(0)
 
-batch_size = 64
+val = 'val'
+sz = 224
+stats = imagenet_stats
 num_epochs = 100
+batch_size = 64
+dataset = 'imagenette'
+path = untar_data(URLs.IMAGENETTE)
 
-class Flatten(nn.Module) :
-    def forward(self, input):
-        return input.view(input.size(0), -1)
-
-def conv2(ni, nf) : 
-    return conv_layer(ni, nf, stride = 2)
-
-class ResBlock(nn.Module):
-    def __init__(self, nf):
-        super().__init__()
-        self.conv1 = conv_layer(nf,nf)
-
-    def forward(self, x): 
-        return (x + self.conv1(x))
-
-def conv_and_res(ni, nf): 
-    return nn.Sequential(conv2(ni, nf), ResBlock(nf))
-
-def conv_(nf) : 
-    return nn.Sequential(conv_layer(nf, nf), ResBlock(nf))
-
-class SaveFeatures :
-    def __init__(self, m) : 
-        self.handle = m.register_forward_hook(self.hook_fn)
-    def hook_fn(self, m, inp, outp) : 
-        self.features = outp
-    def remove(self) :
-        self.handle.remove()
-    
-for repeated in range(0, 1) : 
-    for stage in range(4) :
+for repeated in range(1, 2) : 
+    for stage in range(0, 4) :
         torch.manual_seed(repeated)
         torch.cuda.manual_seed(repeated)
 
-        # stage should be in 0 to 4
+        val = 'val'
+        sz = 224
+        stats = imagenet_stats
+
+        # stage should be in 0 to 5 (5 for classifier stage)
         hyper_params = {
+            "dataset": dataset,
             "stage": stage,
             "repeated": repeated,
             "num_classes": 10,
@@ -52,14 +34,19 @@ for repeated in range(0, 1) :
             "learning_rate": 1e-4
         }
         
-        path = untar_data(URLs.IMAGEWOOF)
-        tfms = get_transforms(do_flip = False)
-        data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = hyper_params["batch_size"], size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+        tfms = get_transforms(do_flip=False)
+        load_name = str(hyper_params['dataset'])
+        if hyper_params['dataset'] == 'cifar10' : 
+            val = 'test'
+            sz = 32
+            stats = cifar_stats
+            load_name = str(hyper_params['dataset'])[ : -2]
+
+        data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
         
         learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-        learn = learn.load('resnet34_imagewoof_bs64')
+        learn = learn.load('resnet34_' + load_name + '_bs64')
         learn.freeze()
-        # learn.summary()
 
         net = nn.Sequential(
             conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
@@ -76,14 +63,14 @@ for repeated in range(0, 1) :
         net.cpu()
         # no need to load model for 0th stage training
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         # separate if conditions for stage 1 and others because of irregular naming convention
         # in the student model.
         elif hyper_params['stage'] == 1 : 
-            filename = '../saved_models/imagewoof/small_stage0/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/small_stage0/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         else : 
-            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         
         if torch.cuda.is_available() : 
@@ -101,15 +88,18 @@ for repeated in range(0, 1) :
         sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6]]]
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4]]]
         
+        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd5", workspace="akshaykvnit")
+        experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/small_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         else : 
-            filename = '../saved_models/imagewoof/small_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/small_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
         optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
         total_step = len(data.train_ds) // hyper_params["batch_size"]
         train_loss_list = list()
         val_loss_list = list()
         min_val = 100
+
         for epoch in range(hyper_params["num_epochs"]):
             trn = []
             net.train()
@@ -160,18 +150,26 @@ for repeated in range(0, 1) :
             if (epoch + 1) % 5 == 0 : 
                 print('repetition : ', hyper_params["repeated"], ' | stage : ', hyper_params["stage"])
                 print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
-
+            
+            experiment.log_metric("train_loss", train_loss)
+            experiment.log_metric("val_loss", val_loss)
+            
             if val_loss < min_val :
                 # print('saving model')
                 min_val = val_loss
                 torch.save(net.state_dict(), filename)
 
+
     # Classifier training
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
+    val = 'val'
+    sz = 224
+    stats = imagenet_stats
 
     # stage should be in 0 to 4 (4 for classifier stage)
     hyper_params = {
+        "dataset": dataset,
         "stage": 4,
         "repeated": repeated,
         "num_classes": 10,
@@ -179,10 +177,20 @@ for repeated in range(0, 1) :
         "num_epochs": num_epochs,
         "learning_rate": 1e-4
     }
-
-    path = untar_data(URLs.IMAGEWOOF)
+    load_name = str(hyper_params['dataset'])
     tfms = get_transforms(do_flip=False)
-    data = ImageDataBunch.from_folder(path, train = 'train', valid = 'val', bs = hyper_params["batch_size"], size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+    if hyper_params['dataset'] == 'cifar10' : 
+        val = 'test'
+        sz = 32
+        stats = cifar_stats
+        load_name = str(hyper_params['dataset'])[ : -2]
+
+    data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
+
+    learn = cnn_learner(data, models.resnet34, metrics = accuracy)
+    learn = learn.load('resnet34_' + load_name + '_bs64')
+    learn.freeze()
+    # learn.summary()
 
     net = nn.Sequential(
         conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
@@ -195,9 +203,9 @@ for repeated in range(0, 1) :
         nn.Linear(2 * 256, 128),
         nn.Linear(128, hyper_params["num_classes"])
     )
-
+    
     net.cpu()
-    filename = '../saved_models/imagewoof/small_stage4/model' + str(repeated) + '.pt'
+    filename = '../saved_models/' + str(hyper_params['dataset']) + '/small_stage4/model' + str(repeated) + '.pt'
     net.load_state_dict(torch.load(filename, map_location = 'cpu'))
 
     if torch.cuda.is_available() : 
@@ -208,12 +216,14 @@ for repeated in range(0, 1) :
         if name[0] == '7' or name[0] == '8':
             param.requires_grad = True
         
+    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd5", workspace="akshaykvnit")
+    experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]
     train_loss_list = list()
     val_loss_list = list()
     min_val = 0
-    savename = '../saved_models/imagewoof/small_classifier/model' + str(repeated) + '.pt'
+    savename = '../saved_models/' + str(hyper_params['dataset']) + '/small_classifier/model' + str(repeated) + '.pt'
     for epoch in range(hyper_params["num_epochs"]):
         trn = []
         net.train()
@@ -260,6 +270,9 @@ for repeated in range(0, 1) :
         val_loss = sum(val) / len(val)
         val_loss_list.append(val_loss)
         val_acc = _get_accuracy(data.valid_dl, net)
+        experiment.log_metric("train_loss", train_loss)
+        experiment.log_metric("val_loss", val_loss)
+        experiment.log_metric("val_acc", val_acc * 100)
 
         print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6), ' | VA : ', round(val_acc * 100, 6))
 

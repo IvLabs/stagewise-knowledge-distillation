@@ -12,8 +12,13 @@ sz = 224
 stats = imagenet_stats
 epochs = 100
 batch_size = 64
-dataset = 'cifar10'
-path = untar_data(URLs.CIFAR)
+dataset = 'imagenette'
+if dataset == 'imagenette' : 
+    path = untar_data(URLs.IMAGENETTE)
+elif dataset == 'cifar10' : 
+    path = untar_data(URLs.CIFAR)
+elif dataset == 'imagewoof' : 
+    path = untar_data(URLs.IMAGEWOOF)
 
 for repeated in range(0, 1) : 
     for stage in range(5) :
@@ -33,15 +38,20 @@ for repeated in range(0, 1) :
         
         new_path = path/'new'
         tfms = get_transforms(do_flip=False)
+        val = 'val'
+        sz = 224
+        stats = imagenet_stats
 
+        load_name = hyper_params['dataset']
         if hyper_params['dataset'] == 'cifar10' : 
             sz = 32
             stats = cifar_stats
+            load_name = hyper_params['dataset'][ : -2]
 
-        data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
-        
+        data = ImageDataBunch.from_folder(new_path, train = 'train', valid = val, test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
+
         learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-        learn = learn.load('/home/akshay/.fastai/data/cifar10/models/resnet34_cifar_bs64')
+        learn = learn.load('/home/akshay/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
         learn.freeze()
 
         net = nn.Sequential(
@@ -86,7 +96,7 @@ for repeated in range(0, 1) :
         sf2 = [SaveFeatures(m) for m in [net[0], net[2], net[3], net[4], net[5]]]
         
         experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu",
-                        project_name="less-data-kd2", workspace="akshaykvnit")
+                        project_name="less-data-kd4", workspace="akshaykvnit")
         experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
             filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
@@ -174,15 +184,20 @@ for repeated in range(0, 1) :
 
     new_path = path/'new'
     tfms = get_transforms(do_flip=False)
+    val = 'val'
+    sz = 224
+    stats = imagenet_stats
 
+    load_name = hyper_params['dataset']
     if hyper_params['dataset'] == 'cifar10' : 
-            sz = 32
-            stats = cifar_stats
+        sz = 32
+        stats = cifar_stats
+        load_name = hyper_params['dataset'][ : -2]
 
-    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
+    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = val, test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
 
     learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-    learn = learn.load('/home/akshay/.fastai/data/cifar10/models/resnet34_cifar_bs64')
+    learn = learn.load('/home/akshay/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
     learn.freeze()
 
     net = nn.Sequential(
@@ -211,7 +226,7 @@ for repeated in range(0, 1) :
             param.requires_grad = True
         
     experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu",
-                        project_name="less-data-kd2", workspace="akshaykvnit")
+                        project_name="less-data-kd4", workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]
