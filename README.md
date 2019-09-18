@@ -30,9 +30,9 @@ Need to test two things:
 - [ ] Go for more general algorithm for compression
 
   
-
-## Results using Imagenette :
 Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
+## Results using Imagenette :
+
 ### ResNet34 Teacher Model :
 - Teacher model is pretrained on Imagenette and gets 99.0 % validation accuracy on Imagenette.
 #### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
@@ -53,12 +53,6 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | Student model trained using data only | 90.8, 90.8, 91.2, 90.6, 91.2 | 90.92 +- 0.24 |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 90.2 | N/A |
 
-#### [Smallest Student Model (having same feature maps as ResNet34, but no skip connections)](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/smallest_model.py) :
-
-| Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
-| --------------|------------------------------------| ------------- |
-| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 88.4 | N/A |
-
 ### ResNet50 Teacher Model
 - Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets 98.2 % validation accuracy on Imagenette
 #### [Small ResNet50-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/large_model.py) :
@@ -69,7 +63,7 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 98.2 | N/A |
 
 ## Results using Imagewoof :
-Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
+
 ### ResNet34 Teacher Model :
 - Teacher model is pretrained on Imagewoof and gets 91.4 % validation accuracy on it.
 #### [Medium-Sized ResNet34-Type Student Model](https://github.com/akshaykvnit/knowledge_distillation/blob/master/code/models/medium_model.py) :
@@ -90,7 +84,6 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 76.8 | N/A |
 
 ## Results using CIFAR10 :
-Note : All accuracies are on validation dataset unless mentioned otherwise. Adam optimizer with learning rate 1e-4 is used everywhere unless otherwise mentioned. 
 
 ### ResNet34 Teacher Model :
 - Teacher model is pretrained on CIFAR10 and gets 87.05 % validation accuracy on it.
