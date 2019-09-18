@@ -51,7 +51,7 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | Training method | Model Accuracies (%) (trained 5 times) | Mean Accuracy (%) |
 | --------------|------------------------------------| ------------- |
 | Student model trained using data only | 90.8, 90.8, 91.2, 90.6, 91.2 | 90.92 +- 0.24 |
-| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 90.2 | N/A |
+| Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 90.2, 91.6 | N/A |
 
 ### ResNet50 Teacher Model
 - Teacher model is pretrained using the same Imagenette dataset (subset of ImageNet) and gets 98.2 % validation accuracy on Imagenette
