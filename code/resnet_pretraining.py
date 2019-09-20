@@ -2,13 +2,13 @@ from fastai.vision import *
 import torch
 from torchsummary import summary
 from utils import _get_accuracy
-from core import Flatten, conv_, conv_and_res
-torch.cuda.set_device(1)
+from models.resnet_cifar import *
+torch.cuda.set_device(0)
 path = untar_data(URLs.CIFAR)
-batch_size = 64
-num_epochs = 100
+batch_size = 128
+num_epochs = 160
 
-for repeated in range(0, 1) : 
+for repeated in range(1, 2) : 
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
 
@@ -18,32 +18,22 @@ for repeated in range(0, 1) :
         "num_classes": 10,
         "batch_size": batch_size,
         "num_epochs": num_epochs,
-        "learning_rate": 1e-4
+        "learning_rate": 1e-1
     }
 
     tfms = get_transforms(do_flip=False)
     data = ImageDataBunch.from_folder(path, train = 'train', valid = 'test', bs = hyper_params['batch_size'], size = 32, ds_tfms = tfms).normalize(cifar_stats)
 
-    net = nn.Sequential(
-        conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
-        nn.MaxPool2d(3, 2, padding = 1),
-        conv_(64),
-        conv_and_res(64, 128),
-        conv_and_res(128, 256),
-        conv_and_res(256, 512),
-        AdaptiveConcatPool2d(),
-        Flatten(),
-        nn.Linear(2 * 512, 256),
-        nn.Linear(256, 10)
-    )
+    net = resnet26_cifar()
 
     if torch.cuda.is_available() : 
         net = net.cuda()
         print('Model on GPU')
 
-    optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params['learning_rate'])
+    optimizer = torch.optim.SGD(net.parameters(), lr = hyper_params['learning_rate'], momentum = 0.9, nesterov = True, weight_decay = 1e-4)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones = [80, 120], gamma = 0.1)
 
-    savename = '../saved_models/'+ str(hyper_params['dataset']) + '/medium_no_teacher/model' + str(repeated) + '.pt'
+    savename = '../saved_models/'+ str(hyper_params['dataset']) + '/resnet26_pretraining/model' + str(repeated) + '.pt'
     total_step = len(data.train_ds) // hyper_params['batch_size']
     train_loss_list = list()
     val_loss_list = list()
@@ -101,17 +91,19 @@ for repeated in range(0, 1) :
             print('saving model')
             min_val = val_acc * 100
             torch.save(net.state_dict(), savename)
+        
+        scheduler.step()
 
-    plt.plot(range(hyper_params['num_epochs']), train_loss_list, 'r', label = 'training_loss')
-    plt.plot(range(hyper_params['num_epochs']), val_loss_list, 'b', label = 'validation_loss')
-    plt.legend()
-    plt.savefig('../figures/' + str(hyper_params['dataset']) + '/medium_no_teacher/training_losses' + str(repeated) + '.jpg')
-    plt.close()
+    # plt.plot(range(hyper_params['num_epochs']), train_loss_list, 'r', label = 'training_loss')
+    # plt.plot(range(hyper_params['num_epochs']), val_loss_list, 'b', label = 'validation_loss')
+    # plt.legend()
+    # plt.savefig('../figures/' + str(hyper_params['dataset']) + '/resnet26_pretraining/training_losses' + str(repeated) + '.jpg')
+    # plt.close()
 
-    plt.plot(range(hyper_params['num_epochs']), val_acc_list, 'r', label = 'validation_accuracy')
-    plt.legend()
-    plt.savefig('../figures/' + str(hyper_params['dataset']) + '/medium_no_teacher/validation_acc' + str(repeated) + '.jpg')
+    # plt.plot(range(hyper_params['num_epochs']), val_acc_list, 'r', label = 'validation_accuracy')
+    # plt.legend()
+    # plt.savefig('../figures/' + str(hyper_params['dataset']) + '/resnet26_pretraining/validation_acc' + str(repeated) + '.jpg')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/cifar10/medium_no_teacher/model0.pt'))
-_get_accuracy(data.valid_dl, net)
+net.load_state_dict(torch.load('../saved_models/cifar10/resnet26_pretraining/model1.pt'))
+print(_get_accuracy(data.valid_dl, net))
