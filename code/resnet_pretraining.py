@@ -4,7 +4,7 @@ from torchsummary import summary
 from utils import _get_accuracy
 from models.resnet_cifar import *
 torch.cuda.set_device(0)
-path = untar_data(URLs.CIFAR)
+path = untar_data(URLs.CIFAR100)
 batch_size = 128
 num_epochs = 160
 
@@ -13,25 +13,26 @@ for repeated in range(1, 2) :
     torch.cuda.manual_seed(repeated)
 
     hyper_params = {
-        "dataset": 'cifar10',
+        "dataset": 'cifar100',
         "repeated": repeated,
-        "num_classes": 10,
+        "num_classes": 100,
         "batch_size": batch_size,
         "num_epochs": num_epochs,
-        "learning_rate": 1e-1
+        "learning_rate": 1e-4
     }
 
     tfms = get_transforms(do_flip=False)
     data = ImageDataBunch.from_folder(path, train = 'train', valid = 'test', bs = hyper_params['batch_size'], size = 32, ds_tfms = tfms).normalize(cifar_stats)
 
-    net = resnet26_cifar()
+    net = resnet26_cifar(num_classes = hyper_params['num_classes'])
 
     if torch.cuda.is_available() : 
         net = net.cuda()
         print('Model on GPU')
 
-    optimizer = torch.optim.SGD(net.parameters(), lr = hyper_params['learning_rate'], momentum = 0.9, nesterov = True, weight_decay = 1e-4)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones = [80, 120], gamma = 0.1)
+    # optimizer = torch.optim.SGD(net.parameters(), lr = hyper_params['learning_rate'], momentum = 0.9, nesterov = True, weight_decay = 1e-4)
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones = [80, 120], gamma = 0.1)
+    optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params['learning_rate'])
 
     savename = '../saved_models/'+ str(hyper_params['dataset']) + '/resnet26_pretraining/model' + str(repeated) + '.pt'
     total_step = len(data.train_ds) // hyper_params['batch_size']
@@ -105,5 +106,5 @@ for repeated in range(1, 2) :
     # plt.savefig('../figures/' + str(hyper_params['dataset']) + '/resnet26_pretraining/validation_acc' + str(repeated) + '.jpg')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/cifar10/resnet26_pretraining/model1.pt'))
+net.load_state_dict(torch.load('../saved_models/cifar100/resnet26_pretraining/model0.pt'))
 print(_get_accuracy(data.valid_dl, net))
