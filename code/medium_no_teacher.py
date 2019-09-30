@@ -2,40 +2,42 @@ from fastai.vision import *
 import torch
 from torchsummary import summary
 from utils import _get_accuracy
-from core import Flatten, conv_, conv_and_res
+from models.custom_resnet import _resnet, BasicBlock
 torch.cuda.set_device(1)
-path = untar_data(URLs.CIFAR)
+path = untar_data(URLs.IMAGENETTE)
 batch_size = 64
 num_epochs = 100
+dataset = 'imagenette'
 
 for repeated in range(0, 1) : 
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
 
+    val = 'val'
+    sz = 224
+    stats = imagenet_stats
+
+    # stage should be in 0 to 5 (5 for classifier stage)
     hyper_params = {
-        "dataset": 'cifar10',
+        "dataset": dataset,
         "repeated": repeated,
         "num_classes": 10,
         "batch_size": batch_size,
         "num_epochs": num_epochs,
         "learning_rate": 1e-4
-    }
+        }
 
     tfms = get_transforms(do_flip=False)
-    data = ImageDataBunch.from_folder(path, train = 'train', valid = 'test', bs = hyper_params['batch_size'], size = 32, ds_tfms = tfms).normalize(cifar_stats)
+    load_name = str(hyper_params['dataset'])
+    if hyper_params['dataset'] == 'cifar10' : 
+        val = 'test'
+        sz = 32
+        stats = cifar_stats
+        load_name = str(hyper_params['dataset'])[ : -2]
 
-    net = nn.Sequential(
-        conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
-        nn.MaxPool2d(3, 2, padding = 1),
-        conv_(64),
-        conv_and_res(64, 128),
-        conv_and_res(128, 256),
-        conv_and_res(256, 512),
-        AdaptiveConcatPool2d(),
-        Flatten(),
-        nn.Linear(2 * 512, 256),
-        nn.Linear(256, 10)
-    )
+    data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
+
+    net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
 
     if torch.cuda.is_available() : 
         net = net.cuda()
@@ -43,7 +45,7 @@ for repeated in range(0, 1) :
 
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params['learning_rate'])
 
-    savename = '../saved_models/'+ str(hyper_params['dataset']) + '/medium_no_teacher/model' + str(repeated) + '.pt'
+    savename = '../saved_models/'+ str(hyper_params['dataset']) + '/resnet14_no_teacher/model' + str(repeated) + '.pt'
     total_step = len(data.train_ds) // hyper_params['batch_size']
     train_loss_list = list()
     val_loss_list = list()
@@ -102,16 +104,16 @@ for repeated in range(0, 1) :
             min_val = val_acc * 100
             torch.save(net.state_dict(), savename)
 
-    plt.plot(range(hyper_params['num_epochs']), train_loss_list, 'r', label = 'training_loss')
-    plt.plot(range(hyper_params['num_epochs']), val_loss_list, 'b', label = 'validation_loss')
-    plt.legend()
-    plt.savefig('../figures/' + str(hyper_params['dataset']) + '/medium_no_teacher/training_losses' + str(repeated) + '.jpg')
-    plt.close()
+#     plt.plot(range(hyper_params['num_epochs']), train_loss_list, 'r', label = 'training_loss')
+#     plt.plot(range(hyper_params['num_epochs']), val_loss_list, 'b', label = 'validation_loss')
+#     plt.legend()
+#     plt.savefig('../figures/' + str(hyper_params['dataset']) + '/resnet14_no_teacher/training_losses' + str(repeated) + '.jpg')
+#     plt.close()
 
-    plt.plot(range(hyper_params['num_epochs']), val_acc_list, 'r', label = 'validation_accuracy')
-    plt.legend()
-    plt.savefig('../figures/' + str(hyper_params['dataset']) + '/medium_no_teacher/validation_acc' + str(repeated) + '.jpg')
+#     plt.plot(range(hyper_params['num_epochs']), val_acc_list, 'r', label = 'validation_accuracy')
+#     plt.legend()
+#     plt.savefig('../figures/' + str(hyper_params['dataset']) + '/resnet14_no_teacher/validation_acc' + str(repeated) + '.jpg')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/cifar10/medium_no_teacher/model0.pt'))
+net.load_state_dict(torch.load('../saved_models/' + str(hyper_params['dataset']) + '/resnet14_no_teacher/model0.pt'))
 _get_accuracy(data.valid_dl, net)
