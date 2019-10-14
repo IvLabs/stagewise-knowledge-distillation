@@ -16,6 +16,9 @@ baseline : https://arxiv.org/abs/1412.6550
 - [ ] Repeat each experiment 5 times with different random seeds.
 - [ ] compare with pruning and other such algos
 
+### Transfer Learning
+- [ ] Test for transfer learning. 
+
 ### Secondary Aims:
 - [ ] Get it to work for Unet.
 
