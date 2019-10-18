@@ -1,15 +1,18 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
 from fastai.vision import *
 import torch
 from torchsummary import summary
 from utils import _get_accuracy
-from models.custom_resnet import _resnet, BasicBlock
+from models.custom_resnet import *
 torch.cuda.set_device(1)
 path = untar_data(URLs.IMAGENETTE)
 batch_size = 64
 num_epochs = 100
 dataset = 'imagenette'
+model_name = 'resnet10'
 
-for repeated in range(0, 1) : 
+for repeated in range(0, 5) : 
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
 
@@ -19,6 +22,7 @@ for repeated in range(0, 1) :
 
     # stage should be in 0 to 5 (5 for classifier stage)
     hyper_params = {
+        "model": model_name,
         "dataset": dataset,
         "repeated": repeated,
         "num_classes": 10,
@@ -37,7 +41,15 @@ for repeated in range(0, 1) :
 
     data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
 
-    net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False).cuda()
+#     net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
+    if model_name == 'resnet10' :
+        net = resnet10(pretrained = False, progress = False)
+    elif model_name == 'resnet14' : 
+        net = resnet14(pretrained = False, progress = False)
+    elif model_name == 'resnet20' :
+        net = resnet20(pretrained = False, progress = False)
+    elif model_name == 'resnet26' :
+        net = resnet26(pretrained = False, progress = False)
 
     if torch.cuda.is_available() : 
         net = net.cuda()
@@ -45,7 +57,7 @@ for repeated in range(0, 1) :
 
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params['learning_rate'])
 
-    savename = '../saved_models/'+ str(hyper_params['dataset']) + '/resnet14_no_teacher/model' + str(repeated) + '.pt'
+    savename = '../saved_models/'+ str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_no_teacher/model' + str(repeated) + '.pt'
     total_step = len(data.train_ds) // hyper_params['batch_size']
     train_loss_list = list()
     val_loss_list = list()
@@ -115,5 +127,5 @@ for repeated in range(0, 1) :
 #     plt.savefig('../figures/' + str(hyper_params['dataset']) + '/resnet14_no_teacher/validation_acc' + str(repeated) + '.jpg')
         
 # checking accuracy of best model
-net.load_state_dict(torch.load('../saved_models/' + str(hyper_params['dataset']) + '/resnet14_no_teacher/model0.pt'))
-_get_accuracy(data.valid_dl, net)
+net.load_state_dict(torch.load('../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_no_teacher/model0.pt'))
+print(_get_accuracy(data.valid_dl, net))
