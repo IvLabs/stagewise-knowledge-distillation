@@ -8,4 +8,6 @@ from torchsummary import summary
 
 resnet = resnet14
 
-print(get_unet(resnet, pretrained=False, n_classes=32))
+unet = get_unet(resnet, pretrained=False, n_classes=32).cuda()
+
+print(unet.forward(torch.randn(2, 3, 224, 224).cuda()).size())
