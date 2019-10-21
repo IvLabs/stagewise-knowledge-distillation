@@ -3,11 +3,12 @@ from pathlib import Path
 from fastai.vision import *
 import shutil
 import random
-NUM_ = 1250
+# 1/4th of number of examples in each class
+NUM_ = 325
 
 random.seed(1)
 
-data = untar_data(URLs.CIFAR)
+data = untar_data(URLs.IMAGENETTE)
 
 new_data = data/"new"
 new_data.mkdir(exist_ok = True)

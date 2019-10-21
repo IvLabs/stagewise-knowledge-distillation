@@ -1,23 +1,27 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
 from comet_ml import Experiment
 from fastai.vision import *
 import torch
 from torchsummary import summary
-from core import Flatten, conv_, conv_and_res
+from models.custom_resnet import *
 from utils import _get_accuracy
 torch.cuda.set_device(1)
 
 sz = 224
 stats = imagenet_stats
-num_epochs = 100
+num_epochs = 2
 batch_size = 64
-dataset = 'cifar10'
-path = untar_data(URLs.CIFAR)
+model_name = 'resnet10'
+dataset = 'imagenette'
+path = untar_data(URLs.IMAGENETTE)
 
 for repeated in range(0, 1) :
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
 
     hyper_params = {
+        "model": model_name, 
         "dataset": dataset,
         "repeated": repeated,
         "num_classes": 10,
@@ -34,29 +38,26 @@ for repeated in range(0, 1) :
         sz = 32
         stats = cifar_stats
 
-    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = batch_size, size = sz, ds_tfms = tfms).normalize(stats)
+    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'test', bs = batch_size, size = sz, ds_tfms = tfms).normalize(stats)
         
-    net = nn.Sequential(
-        conv_layer(3, 64, ks = 7, stride = 2, padding = 3),
-        nn.MaxPool2d(3, 2, padding = 1),
-        conv_(64),
-        conv_and_res(64, 128),
-        conv_and_res(128, 256),
-        conv_and_res(256, 512),
-        AdaptiveConcatPool2d(),
-        Flatten(),
-        nn.Linear(2 * 512, 256),
-        nn.Linear(256, 10)
-    )
+    if model_name == 'resnet10' :
+        net = resnet10(pretrained = False, progress = False)
+    elif model_name == 'resnet14' : 
+        net = resnet14(pretrained = False, progress = False)
+    elif model_name == 'resnet20' :
+        net = resnet20(pretrained = False, progress = False)
+    elif model_name == 'resnet26' :
+        net = resnet26(pretrained = False, progress = False)
 
     if torch.cuda.is_available() : 
         net = net.cuda()
         print('Model on GPU')
     
-    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="less-data-kd3", workspace="akshaykvnit")
-    experiment.log_parameters(hyper_params)
+#     experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="less-data-kd3", workspace="akshaykvnit")
+#     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params['learning_rate'])
-
+    
+    savename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_' + hyper_params['model'] + '_no_teacher/model0.pt'
     total_step = len(data.train_ds) // hyper_params['batch_size']
     train_loss_list = list()
     val_loss_list = list()
@@ -108,18 +109,18 @@ for repeated in range(0, 1) :
         val_loss_list.append(val_loss)
         val_acc = _get_accuracy(data.valid_dl, net)
         val_acc_list.append(val_acc)
-        experiment.log_metric("train_loss", train_loss)
-        experiment.log_metric("val_loss", val_loss)
-        experiment.log_metric("val_acc", val_acc * 100)
+#         experiment.log_metric("train_loss", train_loss)
+#         experiment.log_metric("val_loss", val_loss)
+#         experiment.log_metric("val_acc", val_acc * 100)
         print('epoch : ', epoch + 1, ' / ', hyper_params['num_epochs'], ' | TL : ', round(train_loss, 4), ' | VL : ', round(val_loss, 4), ' | VA : ', round(val_acc * 100, 6))
         
         if (val_acc * 100) > min_val :
             print('saving model')
             min_val = val_acc * 100
-            torch.save(net.state_dict(), '../saved_models/' + str(hyper_params['dataset']) + '/less_data_medium_no_teacher/model0.pt')
+            torch.save(net.state_dict(), savename)
             
     # checking accuracy of best model
-    net.load_state_dict(torch.load('../saved_models/' + str(hyper_params['dataset']) + '/less_data_medium_no_teacher/model0.pt'))
+    net.load_state_dict(torch.load(savename))
     print('validation acc : ', _get_accuracy(data.valid_dl, net))
     print('test acc : ', _get_accuracy(data.test_dl, net))
 

@@ -1,19 +1,21 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
 from comet_ml import Experiment
 from fastai.vision import *
 import torch
 from torchsummary import summary
 from core import SaveFeatures
 from utils import _get_accuracy
-from models.custom_resnet import _resnet, BasicBlock
+from models.custom_resnet import *
 torch.cuda.set_device(0)
 
 val = 'val'
 sz = 224
 stats = imagenet_stats
-num_epochs = 2
+num_epochs = 100
 batch_size = 64
 dataset = 'imagenette'
-model = 'resnet14'
+model_name = 'resnet26'
 path = untar_data(URLs.IMAGENETTE)
 
 for repeated in range(0, 1) : 
@@ -28,7 +30,7 @@ for repeated in range(0, 1) :
         # stage should be in 0 to 5 (5 for classifier stage)
         hyper_params = {
             "dataset": dataset,
-            "model": model,
+            "model": model_name,
             "stage": stage,
             "repeated": repeated,
             "num_classes": 10,
@@ -51,19 +53,27 @@ for repeated in range(0, 1) :
         learn = learn.load('resnet34_' + load_name + '_bs64')
         learn.freeze()
 
-        net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
+        # net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
+        if model_name == 'resnet10' :
+            net = resnet10(pretrained = False, progress = False)
+        elif model_name == 'resnet14' : 
+            net = resnet14(pretrained = False, progress = False)
+        elif model_name == 'resnet20' :
+            net = resnet20(pretrained = False, progress = False)
+        elif model_name == 'resnet26' :
+            net = resnet26(pretrained = False, progress = False)
 
         net.cpu()
         # no need to load model for 0th stage training
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         # separate if conditions for stage 1 and others because of irregular naming convention
         # in the student model.
         elif hyper_params['stage'] == 1 : 
-            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + hyper_params['model'] + '_stage0/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage0/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         else : 
-            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
             net.load_state_dict(torch.load(filename, map_location = 'cpu'))
         
         if torch.cuda.is_available() : 
@@ -81,12 +91,12 @@ for repeated in range(0, 1) :
         sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
         sf2 = [SaveFeatures(m) for m in [net.relu2, net.layer1, net.layer2, net.layer3, net.layer4]]
         
-        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd7", workspace="akshaykvnit")
+        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd_resnet26_imagenette", workspace="akshaykvnit")
         experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
-            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
         else : 
-            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
+            filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
         optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
         total_step = len(data.train_ds) // hyper_params["batch_size"]
         train_loss_list = list()
@@ -163,7 +173,7 @@ for repeated in range(0, 1) :
     # stage should be in 0 to 5 (5 for classifier stage)
     hyper_params = {
         "dataset": dataset,
-        "model": model,
+        "model": model_name,
         "stage": 5,
         "repeated": repeated,
         "num_classes": 10,
@@ -186,10 +196,18 @@ for repeated in range(0, 1) :
     learn.freeze()
     # learn.summary()
 
-    net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
+    # net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
+    if model_name == 'resnet10' :
+        net = resnet10(pretrained = False, progress = False)
+    elif model_name == 'resnet14' : 
+        net = resnet14(pretrained = False, progress = False)
+    elif model_name == 'resnet20' :
+        net = resnet20(pretrained = False, progress = False)
+    elif model_name == 'resnet26' :
+        net = resnet26(pretrained = False, progress = False)
     
     net.cpu()
-    filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + hyper_params['model'] + '_stage5/model' + str(repeated) + '.pt'
+    filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage5/model' + str(repeated) + '.pt'
     net.load_state_dict(torch.load(filename, map_location = 'cpu'))
 
     if torch.cuda.is_available() : 
@@ -200,7 +218,7 @@ for repeated in range(0, 1) :
         if name[0] == 'f' :
             param.requires_grad = True
         
-    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd7", workspace="akshaykvnit")
+    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd_resnet26_imagenette", workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]

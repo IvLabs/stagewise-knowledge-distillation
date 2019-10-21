@@ -10,9 +10,9 @@ path = untar_data(URLs.IMAGENETTE)
 batch_size = 64
 num_epochs = 100
 dataset = 'imagenette'
-model_name = 'resnet10'
+model_name = 'resnet18'
 
-for repeated in range(0, 5) : 
+for repeated in range(0, 1) : 
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
 
@@ -46,6 +46,8 @@ for repeated in range(0, 5) :
         net = resnet10(pretrained = False, progress = False)
     elif model_name == 'resnet14' : 
         net = resnet14(pretrained = False, progress = False)
+    elif model_name == 'resnet18' : 
+        net = resnet18(pretrained = False, progress = False)
     elif model_name == 'resnet20' :
         net = resnet20(pretrained = False, progress = False)
     elif model_name == 'resnet26' :
