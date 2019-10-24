@@ -19,7 +19,10 @@ except :
     test = new_data/"test"
     
 try : 
-    val = shutil.copytree(data/"test", new_data/"val")
+    # for Imagenette and Imagewoof
+    val = shutil.copytree(data/"val", new_data/"val")
+    # for CIFAR
+    # val = shutil.copytree(data/"test", new_data/"val")
 except : 
     val = new_data/"val"
 

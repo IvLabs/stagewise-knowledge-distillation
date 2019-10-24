@@ -3,18 +3,31 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functio
 from comet_ml import Experiment
 from fastai.vision import *
 import torch
-from torchsummary import summary
 from models.custom_resnet import *
 from utils import _get_accuracy
+import argparse
 torch.cuda.set_device(1)
+
+parser = argparse.ArgumentParser(description = 'Training of ResNet type model using less data approach')
+parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
+parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
+args = parser.parse_args()
 
 sz = 224
 stats = imagenet_stats
-num_epochs = 2
+num_epochs = 100
 batch_size = 64
-model_name = 'resnet10'
-dataset = 'imagenette'
-path = untar_data(URLs.IMAGENETTE)
+# model_name = 'resnet10'
+# dataset = 'imagenette'
+model_name = args.m
+dataset = args.d
+
+if dataset == 'imagenette' : 
+    path = untar_data(URLs.IMAGENETTE)
+elif dataset == 'cifar10' : 
+    path = untar_data(URLs.CIFAR)
+elif dataset == 'imagewoof' : 
+    path = untar_data(URLs.IMAGEWOOF)
 
 for repeated in range(0, 1) :
     torch.manual_seed(repeated)
@@ -38,7 +51,7 @@ for repeated in range(0, 1) :
         sz = 32
         stats = cifar_stats
 
-    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'test', bs = batch_size, size = sz, ds_tfms = tfms).normalize(stats)
+    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = batch_size, size = sz, ds_tfms = tfms).normalize(stats)
         
     if model_name == 'resnet10' :
         net = resnet10(pretrained = False, progress = False)
@@ -57,7 +70,7 @@ for repeated in range(0, 1) :
 #     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params['learning_rate'])
     
-    savename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data_' + hyper_params['model'] + '_no_teacher/model0.pt'
+    savename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data/' + hyper_params['model'] + '_no_teacher/model0.pt'
     total_step = len(data.train_ds) // hyper_params['batch_size']
     train_loss_list = list()
     val_loss_list = list()
