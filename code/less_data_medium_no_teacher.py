@@ -11,11 +11,12 @@ torch.cuda.set_device(1)
 parser = argparse.ArgumentParser(description = 'Training of ResNet type model using less data approach')
 parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
 parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
+parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
 args = parser.parse_args()
 
 sz = 224
 stats = imagenet_stats
-num_epochs = 100
+num_epochs = args.e
 batch_size = 64
 # model_name = 'resnet10'
 # dataset = 'imagenette'
@@ -57,6 +58,8 @@ for repeated in range(0, 1) :
         net = resnet10(pretrained = False, progress = False)
     elif model_name == 'resnet14' : 
         net = resnet14(pretrained = False, progress = False)
+    elif model_name == 'resnet18' :
+        net = resnet18(pretrained = False, progress = False)
     elif model_name == 'resnet20' :
         net = resnet20(pretrained = False, progress = False)
     elif model_name == 'resnet26' :

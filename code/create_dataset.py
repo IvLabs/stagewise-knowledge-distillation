@@ -4,11 +4,14 @@ from fastai.vision import *
 import shutil
 import random
 # 1/4th of number of examples in each class
-NUM_ = 325
+# for cifar10
+NUM_ = 1250
+# for imagenette and imagewoof
+# NUM_ = 325
 
 random.seed(1)
 
-data = untar_data(URLs.IMAGENETTE)
+data = untar_data(URLs.CIFAR)
 
 new_data = data/"new"
 new_data.mkdir(exist_ok = True)
@@ -20,9 +23,9 @@ except :
     
 try : 
     # for Imagenette and Imagewoof
-    val = shutil.copytree(data/"val", new_data/"val")
+    # val = shutil.copytree(data/"val", new_data/"val")
     # for CIFAR
-    # val = shutil.copytree(data/"test", new_data/"val")
+    val = shutil.copytree(data/"test", new_data/"val")
 except : 
     val = new_data/"val"
 

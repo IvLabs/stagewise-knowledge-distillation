@@ -2,15 +2,33 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
 from fastai.vision import *
 import torch
+import argparse
 from torchsummary import summary
 from utils import _get_accuracy
 from models.custom_resnet import *
 torch.cuda.set_device(1)
-path = untar_data(URLs.IMAGENETTE)
+
+parser = argparse.ArgumentParser(description = 'Stagewise training of ResNet type model using less data approach')
+parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
+parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
+parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
+args = parser.parse_args()
+
+sz = 224
+stats = imagenet_stats
+epochs = args.e
 batch_size = 64
-num_epochs = 100
-dataset = 'imagenette'
-model_name = 'resnet18'
+# model_name = 'resnet10'
+# dataset = 'imagenette'
+model_name = args.m
+dataset = args.d
+
+if dataset == 'imagenette' : 
+    path = untar_data(URLs.IMAGENETTE)
+elif dataset == 'cifar10' : 
+    path = untar_data(URLs.CIFAR)
+elif dataset == 'imagewoof' : 
+    path = untar_data(URLs.IMAGEWOOF)
 
 for repeated in range(0, 1) : 
     torch.manual_seed(repeated)
@@ -27,7 +45,7 @@ for repeated in range(0, 1) :
         "repeated": repeated,
         "num_classes": 10,
         "batch_size": batch_size,
-        "num_epochs": num_epochs,
+        "num_epochs": epochs,
         "learning_rate": 1e-4
         }
 
@@ -111,7 +129,7 @@ for repeated in range(0, 1) :
         val_loss_list.append(val_loss)
         val_acc = _get_accuracy(data.valid_dl, net)
         val_acc_list.append(val_acc)
-        print('epoch : ', epoch + 1, ' / ', num_epochs, ' | TL : ', round(train_loss, 4), ' | VL : ', round(val_loss, 4), ' | VA : ', round(val_acc * 100, 6))
+        print('epoch : ', epoch + 1, ' / ', hyper_params['num_epochs'], ' | TL : ', round(train_loss, 4), ' | VL : ', round(val_loss, 4), ' | VA : ', round(val_acc * 100, 6))
         
         if (val_acc * 100) > min_val :
             print('saving model')

@@ -3,20 +3,35 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functio
 from comet_ml import Experiment
 from fastai.vision import *
 import torch
+import argparse
 from torchsummary import summary
 from core import SaveFeatures
 from utils import _get_accuracy
 from models.custom_resnet import *
 torch.cuda.set_device(0)
 
+parser = argparse.ArgumentParser(description = 'Stagewise training of ResNet type model using less data approach')
+parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
+parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
+parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
+args = parser.parse_args()
+
 val = 'val'
 sz = 224
 stats = imagenet_stats
-num_epochs = 100
+num_epochs = args.e
 batch_size = 64
-dataset = 'imagenette'
-model_name = 'resnet26'
-path = untar_data(URLs.IMAGENETTE)
+# dataset = 'imagenette'
+# model_name = 'resnet26'
+dataset = args.d
+model_name = args.m
+
+if dataset == 'imagenette' : 
+    path = untar_data(URLs.IMAGENETTE)
+elif dataset == 'cifar10' : 
+    path = untar_data(URLs.CIFAR)
+elif dataset == 'imagewoof' : 
+    path = untar_data(URLs.IMAGEWOOF)
 
 for repeated in range(0, 1) : 
     for stage in range(5) :
@@ -58,6 +73,8 @@ for repeated in range(0, 1) :
             net = resnet10(pretrained = False, progress = False)
         elif model_name == 'resnet14' : 
             net = resnet14(pretrained = False, progress = False)
+        elif model_name == 'resnet18' :
+            net = resnet18(pretrained = False, progress = False)
         elif model_name == 'resnet20' :
             net = resnet20(pretrained = False, progress = False)
         elif model_name == 'resnet26' :
@@ -91,7 +108,8 @@ for repeated in range(0, 1) :
         sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
         sf2 = [SaveFeatures(m) for m in [net.relu2, net.layer1, net.layer2, net.layer3, net.layer4]]
         
-        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd_resnet26_imagenette", workspace="akshaykvnit")
+        project_name = 'kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
+        experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name = project_name, workspace="akshaykvnit")
         experiment.log_parameters(hyper_params)
         if hyper_params['stage'] == 0 : 
             filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
@@ -201,6 +219,8 @@ for repeated in range(0, 1) :
         net = resnet10(pretrained = False, progress = False)
     elif model_name == 'resnet14' : 
         net = resnet14(pretrained = False, progress = False)
+    elif model_name == 'resnet18' :
+        net = resnet18(pretrained = False, progress = False)
     elif model_name == 'resnet20' :
         net = resnet20(pretrained = False, progress = False)
     elif model_name == 'resnet26' :
@@ -218,7 +238,8 @@ for repeated in range(0, 1) :
         if name[0] == 'f' :
             param.requires_grad = True
         
-    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name="kd_resnet26_imagenette", workspace="akshaykvnit")
+    project_name = 'kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
+    experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name = project_name, workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]
