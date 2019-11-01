@@ -63,7 +63,7 @@ for repeated in range(0, 1) :
         data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
 
         learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-        learn = learn.load('/home/akshay/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
+        learn = learn.load('/home/akshay/.fastai/data/' + str(hyper_params['dataset']) + '/models/resnet34_' + load_name + '_bs64')
         learn.freeze()
 
         if model_name == 'resnet10' :
@@ -176,7 +176,7 @@ for repeated in range(0, 1) :
                 # print('saving model')
                 min_val = val_loss
                 torch.save(net.state_dict(), filename)
-    
+
     # Classifier training
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
@@ -207,7 +207,7 @@ for repeated in range(0, 1) :
     data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
 
     learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-    learn = learn.load('/home/akshay/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
+    learn = learn.load('/home/akshay/.fastai/data/' + str(hyper_params['dataset']) + '/models/resnet34_' + load_name + '_bs64')
     learn.freeze()
 
     if model_name == 'resnet10' :

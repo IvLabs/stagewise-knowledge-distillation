@@ -180,7 +180,6 @@ for repeated in range(0, 1) :
                 min_val = val_loss
                 torch.save(net.state_dict(), filename)
 
-
     # Classifier training
     torch.manual_seed(repeated)
     torch.cuda.manual_seed(repeated)
