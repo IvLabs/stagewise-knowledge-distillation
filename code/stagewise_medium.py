@@ -10,7 +10,7 @@ from utils import _get_accuracy
 from models.custom_resnet import *
 torch.cuda.set_device(0)
 
-parser = argparse.ArgumentParser(description = 'Stagewise training of ResNet type model using less data approach')
+parser = argparse.ArgumentParser(description = 'Stagewise training of ResNet type model')
 parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
 parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
 parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
