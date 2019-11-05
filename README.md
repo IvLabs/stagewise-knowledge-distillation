@@ -98,3 +98,15 @@ Note : All accuracies are on validation dataset unless mentioned otherwise. Adam
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using data | 82.19 | N/A |
 | Student model trained using only subset of training data | 61.45 (62.11 test acc) | N/A |
 | Student model trained stage-wise using feature maps from teacher and classifier part trained using subset of training data | 77.27 (79.10 test acc) | N/A |
+
+
+## Models parameters and flops:
+
+| Model | MACs (flops) |  Parameters |
+| --------------|------------------------------------| ------------- |
+| ResNet10 | 896.197M | 5.171M |    
+| ResNet14 | 1.359G | 11.072M |  
+| ResNet18 | 1.824G | 11.441M |    
+| ResNet20 | 2.056G | 12.622M |                                                                                                        
+| ResNet26 | 2.752G | 17.712M |                                                
+| ResNet34 | 3.679G | 21.550M |  
