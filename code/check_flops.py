@@ -23,3 +23,7 @@ for md in tqdm(models):
 print("flops", flops_dict)
 
 print("params", params_dict)
+
+print(f"| models | MACs | Parameters (M) |")
+for md in models:
+    print(f"| {md} | {flops_dict[md]} | {params_dict[md]} |")
