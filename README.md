@@ -3,6 +3,10 @@
 ## Code Implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786)
 This repository presents the code implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786), a technique for improving knowledge transfer between a teacher model and student model.
 
+### Dependencies
+- [PyTorch 1.3.0](https://pytorch.org/)
+- [fastai v1](https://github.com/fastai/fastai/blob/master/README.md#installation)
+
 ### Architectures Used
 Following [ResNet](https://arxiv.org/abs/1512.03385) architectures are used:
 - ResNet10
