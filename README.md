@@ -32,7 +32,7 @@ Note: Imagenette and Imagewoof are subsets of ImageNet.
 - `root/code/stagewise_medium.py` - Code for stagewise training on complete dataset.
 - `root/code/less_data_stagewise_medium.py` - Code for stagewise training on smaller sized dataset.
 - `root/code/utils.py` - Some utility code.
-- `root/notebooks/` - Contain notebooks with similar code as above.
+- `root/notebooks/` - Contains notebooks with similar code as above.
 
 ## Citation
 If you use this code or method in your work, please cite using
