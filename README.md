@@ -1,6 +1,6 @@
 # Stagewise Knowledge Distillation
 
-![Stagewise Training Procedure](/figures/network_arch.png)
+![Stagewise Training Procedure](/figures/kd network arch.png)
 
 ## Code Implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786)
 This repository presents the code implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786), a technique for improving knowledge transfer between a teacher model and student model.
