@@ -1,6 +1,6 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
-# from comet_ml import Experiment
+from comet_ml import Experiment
 import matplotlib.pyplot as plt
 from fastai.vision import *
 import torch
@@ -59,7 +59,7 @@ if hyper_params['dataset'] == 'cifar10' :
 data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
 
 learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-learn = learn.load('/home/akshay/.fastai/data/' + str(hyper_params['dataset']) + '/models/resnet34_' + load_name + '_bs64')
+learn = learn.load(os.path.expanduser("~") + '/.fastai/data/' + str(hyper_params['dataset']) + '/models/resnet34_' + load_name + '_bs64')
 learn.freeze()
 
 if hyper_params['model'] == 'resnet10' :
@@ -104,13 +104,17 @@ for stage in range(5) :
     sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
     sf2 = [SaveFeatures(m) for m in [net.relu2, net.layer1, net.layer2, net.layer3, net.layer4]]
     
-    # project_name = 'kd-ld' + str(hyper_params['perc']) + '-' + hyper_params['dataset'] + '-' + hyper_params['model']    
-    # experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace = "akshaykvnit")
-    # experiment.log_parameters(hyper_params)
+    project_name = 'kd-ld' + str(hyper_params['perc']) + '-' + hyper_params['dataset'] + '-' + hyper_params['model']    
+    experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace = "akshaykvnit")
+    experiment.log_parameters(hyper_params)
+
     if hyper_params['stage'] == 0 : 
+        os.makedirs('../saved_models/' + str(hyper_params['dataset']) + '/less_data' + str(hyper_params['perc']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage']), exist_ok = True)
         filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data' + str(hyper_params['perc']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
     else : 
+        os.makedirs('../saved_models/' + str(hyper_params['dataset']) + '/less_data' + str(hyper_params['perc']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage'] + 1), exist_ok = True)
         filename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data' + str(hyper_params['perc']) + '/' + hyper_params['model'] + '_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
+    
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]
     train_loss_list = list()
@@ -169,8 +173,8 @@ for stage in range(5) :
             print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
         # print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
         
-        # experiment.log_metric("train_loss", train_loss)
-        # experiment.log_metric("val_loss", val_loss)
+        experiment.log_metric("train_loss", train_loss)
+        experiment.log_metric("val_loss", val_loss)
 
         if val_loss < min_val :
             # print('saving model')
@@ -220,15 +224,16 @@ for name, param in net.named_parameters() :
     if name[0] == 'f' :
         param.requires_grad = True
     
-# project_name = 'kd-ld' + str(hyper_params['perc']) + '-' + hyper_params['dataset'] + '-' + hyper_params['model']
-# experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace = "akshaykvnit")
-# experiment.log_parameters(hyper_params)
+project_name = 'kd-ld' + str(hyper_params['perc']) + '-' + hyper_params['dataset'] + '-' + hyper_params['model']
+experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace = "akshaykvnit")
+experiment.log_parameters(hyper_params)
 
 optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
 total_step = len(data.train_ds) // hyper_params["batch_size"]
 train_loss_list = list()
 val_loss_list = list()
 min_val = 0
+os.makedirs('../saved_models/' + str(hyper_params['dataset']) + '/less_data' + str(hyper_params['perc']) + '/' + hyper_params['model'] + '_classifier', exist_ok = True)
 savename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data' + str(hyper_params['perc']) + '/' + hyper_params['model'] + '_classifier/model' + str(hyper_params['repeated']) + '.pt'
 for epoch in range(hyper_params["num_epochs"]):
     trn = []
@@ -277,9 +282,9 @@ for epoch in range(hyper_params["num_epochs"]):
     val_loss_list.append(val_loss)
     val_acc = _get_accuracy(data.valid_dl, net)
     
-    # experiment.log_metric("train_loss", train_loss)
-    # experiment.log_metric("val_loss", val_loss)
-    # experiment.log_metric("val_acc", val_acc * 100)
+    experiment.log_metric("train_loss", train_loss)
+    experiment.log_metric("val_loss", val_loss)
+    experiment.log_metric("val_acc", val_acc * 100)
 
     print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6), ' | VA : ', round(val_acc * 100, 6))
 
