@@ -44,7 +44,7 @@ for repeated in range(0, 1) :
         "learning_rate": 1e-4
     }
 
-    new_path = path/'new'
+    new_path = path/'new8'
     batch_size = 64
     tfms = get_transforms(do_flip=False)
 
@@ -73,7 +73,7 @@ for repeated in range(0, 1) :
 #     experiment.log_parameters(hyper_params)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params['learning_rate'])
     
-    savename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data/' + hyper_params['model'] + '_no_teacher/model0.pt'
+    savename = '../saved_models/' + str(hyper_params['dataset']) + '/less_data8/' + hyper_params['model'] + '_no_teacher/model0.pt'
     total_step = len(data.train_ds) // hyper_params['batch_size']
     train_loss_list = list()
     val_loss_list = list()

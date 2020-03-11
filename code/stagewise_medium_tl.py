@@ -26,6 +26,10 @@ batch_size = 64
 dataset = args.d
 model_name = args.m
 
+tfms = get_transforms(do_flip=False)
+path2 = untar_data(URLs.IMAGENETTE)
+data2 = ImageDataBunch.from_folder(path2, train = 'train', valid = 'val', bs = 64, size = 224, ds_tfms = tfms).normalize(imagenet_stats)
+
 if dataset == 'imagenette' : 
     path = untar_data(URLs.IMAGENETTE)
 elif dataset == 'cifar10' : 
@@ -64,7 +68,7 @@ for repeated in range(0, 1) :
 
         data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
         
-        learn = cnn_learner(data, models.resnet34, pretrained = True)
+        learn = cnn_learner(data2, models.resnet34, pretrained = True)
         learn.freeze()
 
         # net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
@@ -204,12 +208,6 @@ for repeated in range(0, 1) :
         sz = 32
         stats = cifar_stats
         load_name = str(hyper_params['dataset'])[ : -2]
-
-    data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
-
-    learn = cnn_learner(data, models.resnet34, pretrained = True)
-    learn.freeze()
-    # learn.summary()
 
     # net = _resnet('resnet14', BasicBlock, [2, 2, 1, 1], pretrained = False, progress = False)
     if model_name == 'resnet10' :

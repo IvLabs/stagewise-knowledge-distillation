@@ -3,17 +3,38 @@ from pathlib import Path
 from fastai.vision import *
 import shutil
 import random
-# 1/4th of number of examples in each class
-# for cifar10
-NUM_ = 1250
-# for imagenette and imagewoof
-# NUM_ = 325
+import argparse
+import sys
 
 random.seed(1)
 
-data = untar_data(URLs.CIFAR)
+parser = argparse.ArgumentParser(description = 'Creating dataset for less data')
+parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
+parser.add_argument('-p', type = int, help = 'Give percentage of dataset')
+args = parser.parse_args()
 
-new_data = data/"new"
+if args.d == 'imagenette' or args.d == 'imagewoof' :
+    NUM_ = int(args.p * 13)
+    if args.d == 'imagenette' :
+        data = untar_data(URLs.IMAGENETTE)
+    else :
+        data = untar_data(URLs.IMAGEWOOF)
+elif args.d == 'cifar10' :
+    NUM_ = int(args.p * 50)
+    data = untar_data(URLs.CIFAR)
+else :
+    print('Give dataset from choices only')
+
+print(NUM_)
+# 1/4th of number of examples in each class
+# for cifar10
+# NUM_ = 1250 # for 1/4th
+# NUM_ = 625
+# for imagenette and imagewoof
+# NUM_ = 325 # for 1/4th
+# NUM_ = 162 # for 1/8th
+
+new_data = data/('new' + str(args.p))
 new_data.mkdir(exist_ok = True)
 
 try : 
@@ -21,16 +42,20 @@ try :
 except : 
     test = new_data/"test"
     
-try : 
+try :
     # for Imagenette and Imagewoof
     # val = shutil.copytree(data/"val", new_data/"val")
     # for CIFAR
-    val = shutil.copytree(data/"test", new_data/"val")
-except : 
+    # val = shutil.copytree(data/"test", new_data/"val")
+    if args.d == 'imagenette' or args.d == 'imagewoof' :
+        val = shutil.copytree(data/"val", new_data/"val")
+    else :
+        val = shutil.copytree(data/"test", new_data/"val")
+except :
     val = new_data/"val"
 
 train = new_data/"train"
-try : 
+try :
     shutil.rmtree(str(train)) 
 except : 
     pass
@@ -52,4 +77,4 @@ def test_folder(folder_name, NUM_):
         return True
 
 if test_folder(train, NUM_): 
-    print("Completed copying")
+    print('Completed copying', args.p, '% of', args.d)
