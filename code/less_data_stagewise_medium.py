@@ -23,7 +23,7 @@ torch.cuda.manual_seed(args.s)
 
 sz = 224
 stats = imagenet_stats
-batch_size = 64
+batch_size = 32
 
 # stage should be in 0 to 5 (5 for classifier stage)
 hyper_params = {
