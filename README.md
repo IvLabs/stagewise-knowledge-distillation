@@ -1,6 +1,8 @@
 # Stagewise Knowledge Distillation
 
-![Stagewise Training Procedure](/figures/network.jpg)
+Note: A new version of this paper based on semantic segmentation and image classification results will be released soon. The previous version described only the image classification results. This repo will soon be updated with details of the new experiments (code is already uploaded).
+
+![Stagewise Training Procedure](/image_classification/figures/training_proc.png)
 
 ## Code Implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786)
 This repository presents the code implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786), a technique for improving knowledge transfer between a teacher model and student model.
