@@ -1,4 +1,4 @@
-# Stagewise Knowledge Distillation
+# Data Efficient Stagewise Knowledge Distillation
 
 Note: A new version of this paper based on semantic segmentation and image classification results will be released soon. The previous version described only the image classification results. This repo will soon be updated with details of the new experiments (code is already uploaded).
 
