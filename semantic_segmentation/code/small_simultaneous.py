@@ -8,14 +8,11 @@ import models
 import argparse
 import os
 from helper import *
+from args import get_args
+
 torch.cuda.set_device(0)
 
-parser = argparse.ArgumentParser(description = 'Simultaneous training of UNet based on ResNet encoder using less data')
-parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the encoder name from the choices')
-parser.add_argument('-p', type = int, help = 'Give percentage of dataset to be used for training')
-parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
-parser.add_argument('-s', type = int, help = 'Give the random seed number')
-args = parser.parse_args()
+args = get_args(desc='Simultaneous training of UNet based on ResNet encoder using less data', small=True)
 
 torch.manual_seed(args.s)
 torch.cuda.manual_seed(args.s)
