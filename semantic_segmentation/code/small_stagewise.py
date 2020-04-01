@@ -9,6 +9,8 @@ import models
 import argparse
 from helper import *
 from args import get_args
+from features import get_features
+
 
 torch.cuda.set_device(0)
 
@@ -90,29 +92,7 @@ teacher.load_state_dict(torch.load('../saved_models/camvid/resnet34/pretrained_0
 # Freeze the teacher model
 teacher = unfreeze(teacher, 30)
 
-sf_student = [SaveFeatures(m) for m in [student.encoder.relu, 
-                                        student.encoder.layer1, 
-                                        student.encoder.layer2, 
-                                        student.encoder.layer3, 
-                                        student.encoder.layer4, 
-                                        student.decoder.blocks[0], 
-                                        student.decoder.blocks[1], 
-                                        student.decoder.blocks[2], 
-                                        student.decoder.blocks[3], 
-                                        student.decoder.blocks[4] 
-                                        ]]
-
-sf_teacher = [SaveFeatures(m) for m in [teacher.encoder.relu, 
-                                        teacher.encoder.layer1, 
-                                        teacher.encoder.layer2, 
-                                        teacher.encoder.layer3, 
-                                        teacher.encoder.layer4, 
-                                        teacher.decoder.blocks[0], 
-                                        teacher.decoder.blocks[1], 
-                                        teacher.decoder.blocks[2], 
-                                        teacher.decoder.blocks[3], 
-                                        teacher.decoder.blocks[4] 
-                                        ]]
+sf_student, sf_teacher = get_features(student, teacher)
 
 for stage in range(10) : 
     # update hyperparams dictionary

@@ -8,6 +8,7 @@ import models
 import argparse
 from helper import *
 from args import get_args
+from features import get_features_trad
 torch.cuda.set_device(0)
 
 args = get_args(desc='traditional kd (Small dataset) training of UNet based on ResNet encoder', small=True)
@@ -61,48 +62,7 @@ teacher.load_state_dict(torch.load('../saved_models/camvid/resnet34/pretrained_0
 # Freeze the teacher model
 teacher = unfreeze_trad(teacher, 30)
 
-sf_student = [SaveFeatures(m) for m in [student.encoder.layer2, 
-                                        student.decoder.blocks[2], 
-                                        ]]
-
-sf_teacher = [SaveFeatures(m) for m in [teacher.encoder.layer2, 
-                                        teacher.decoder.blocks[2], 
-                                        ]]
-
-# project_name = 'trad-kd-less-data-camvid-' + hyper_params['model']
-# experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="semseg_kd")
-# experiment.log_parameters(hyper_params)
-
-# optimizer = torch.optim.Adam(student.parameters(), lr = hyper_params['learning_rate'])
-# scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr = 1e-2, steps_per_epoch = len(trainloader), epochs = hyper_params['num_epochs'])
-# criterion = nn.CrossEntropyLoss(ignore_index = 11)
-# criterion2 = nn.MSELoss()
-
-# savename = '../saved_models/camvid/less_data' + str(hyper_params['perc']) + '/trad_kd/' + hyper_params['model'] + '/model' + str(hyper_params['seed']) + '.pt'
-# highest_iou = 0
-# losses = []
-# for epoch in range(hyper_params['num_epochs']) :
-#     student, highest_iou, train_loss, val_loss, avg_iou, avg_pixel_acc, avg_dice_coeff = train_trad_kd(model = student, 
-#                         teacher = teacher,
-#                         sf_teacher = sf_teacher,
-#                         sf_student = sf_student,
-#                         train_loader = trainloader, 
-#                         val_loader = valloader,
-#                         num_classes = 12,
-#                         loss_function1 = criterion,
-#                         loss_function2 = criterion2, 
-#                         optimiser = optimizer, 
-#                         scheduler = scheduler, 
-#                         epoch = epoch, 
-#                         num_epochs = hyper_params['num_epochs'], 
-#                         savename = savename, 
-#                         highest_iou = highest_iou
-#                        )
-#     experiment.log_metric('train_loss', train_loss)
-#     experiment.log_metric('val_loss', val_loss)
-#     experiment.log_metric('avg_iou', avg_iou)
-#     experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
-#     experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
+sf_student, sf_teacher = get_features_trad(student, teacher)
 
 for stage in range(2) : 
     # update hyperparams dictionary
