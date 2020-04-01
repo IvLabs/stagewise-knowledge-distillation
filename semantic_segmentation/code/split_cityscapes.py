@@ -5,10 +5,11 @@ import sys
 import argparse
 from pathlib import Path
 from shutil import copyfile
-from args import get_args
 random.seed(1)
 
-args = get_args(data=True)
+parser = argparse.ArgumentParser(description = 'Reducing dataset size')
+parser.add_argument('-p', type = int, help = 'Give percentage of dataset')
+args = parser.parse_args()
 
 current_path = os.path.abspath('..')
 train_path = "/home/himanshu/cityscape/leftImg8bit/train"
