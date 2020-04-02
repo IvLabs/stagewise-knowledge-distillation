@@ -302,7 +302,7 @@ def get_dataset(dataset="camvid", p=None, test=False):
                                       target_type='semantic',
                                       mode='fine'
                                       )
-        if test:
-            return train_dataset, valid_dataset, test_dataset, num_classes
-        else:
-            return train_dataset, valid_dataset, num_classes
+    if test:
+        return train_dataset, valid_dataset, test_dataset, num_classes
+    else:
+        return train_dataset, valid_dataset, num_classes
