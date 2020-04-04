@@ -26,8 +26,8 @@ class CamVid(data.Dataset):
 
     def __init__(self, DATA_DIR=None, mode='train', p=None):
         self.p = p
-        images_dir, masks_dir = self.get_dirs(DATA_DIR)
         self.mode = mode
+        images_dir, masks_dir = self.get_dirs(DATA_DIR)
         self.ids = os.listdir(images_dir)
         self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
         self.masks_fps = [os.path.join(masks_dir, image_id) for image_id in self.ids]
@@ -61,6 +61,12 @@ class CamVid(data.Dataset):
     def __len__(self):
         return len(self.ids)
 
+    def get_dirs(self, DATA_DIR):
+        if self.p is None:
+            return os.path.join(DATA_DIR, self.mode), os.path.join(DATA_DIR, self.mode + "annot")
+        else:
+            os.path.join(DATA_DIR, self.mode + 'small' + str(self.p)), os.path.join(DATA_DIR, self.mode + 'smallannot')
+
     @property
     def transform(self):
         return transforms.Compose([
@@ -72,12 +78,6 @@ class CamVid(data.Dataset):
     def classes(self):
         return ['sky', 'building', 'pole', 'road', 'pavement', 'tree', 'signsymbol', 'fence',
                 'car', 'pedestrian', 'bicyclist', 'unlabelled']
-
-    def get_dirs(self, DATA_DIR):
-        if self.p is None:
-            return os.path.join(DATA_DIR, self.mode), os.path.join(DATA_DIR, self.mode + "annot")
-        else:
-            os.path.join(DATA_DIR, self.mode + 'small' + str(self.p)), os.path.join(DATA_DIR, self.mode + 'smallannot')
 
 
 class Cityscapes(torchvision.datasets.vision.VisionDataset):

@@ -1,0 +1,13 @@
+name: skd_semseg
+dependencies:
+  - python=3.6
+  - pytorch>=1.0
+  - torchvision
+  - numpy
+  - matplotlib
+  - pillow==6.1
+  - pip
+  - pip:
+    - segmentation_models_pytorch
+    - comet_ml
+    - opencv-python

@@ -4,7 +4,7 @@ import argparse
 def get_args(desc="No Desc", mode='train'):
     if mode == 'train':
         parser = argparse.ArgumentParser(description=desc)
-        parser.add_argument('-m','--model', choices=['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26', 'resnet34'],
+        parser.add_argument('-m', '--model', choices=['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26', 'resnet34'],
                             help='Give the encoder name from the choices', default="resnet26")
         parser.add_argument('-d', '--dataset', choices=['camvid', 'cityscapes'],
                             help='Give the dataset to be used for training from the choices', default="camvid")
