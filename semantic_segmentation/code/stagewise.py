@@ -1,37 +1,39 @@
+import comet_ml
 import torch
 from torch.utils.data import DataLoader
 
 import models
-from args import get_args
+from arguments import get_args
 from dataset import get_dataset
 from trainer import train_stagewise, unfreeze
 from utils import *
 
-torch.cuda.set_device(0)
 args = get_args(desc='Stagewise training using less data of UNet based on ResNet encoder')
 hyper_params = {
-    "dataset": args.d,
-    "model": args.m,
-    "seed": args.s,
+    "dataset": args.dataset,
+    "model": args.model,
+    "seed": args.seed,
     "num_classes": 12,
     "batch_size": 8,
-    "num_epochs": args.e,
+    "num_epochs": args.epoch,
     "learning_rate": 1e-4,
     "stage": 0,
-    "perc": str(args.p)
+    "perc": str(args.percentage)
 }
 
-torch.manual_seed(args.s)
-torch.cuda.manual_seed(args.s)
+torch.manual_seed(hyper_params['seed'])
+if args.gpu != 'cpu':
+    torch.cuda.set_device(args.gpu)
+    torch.cuda.manual_seed(hyper_params['seed'])
 
-train_dataset, valid_dataset, num_classes = get_dataset(args.d, args.p)
+train_dataset, valid_dataset, num_classes = get_dataset(args.dataset, args.percentage)
 hyper_params['num_classes'] = num_classes
 
 trainloader = DataLoader(train_dataset, batch_size=hyper_params['batch_size'], shuffle=True, drop_last=True)
 valloader = DataLoader(valid_dataset, batch_size=1, shuffle=False)
 
-student = models.unet.Unet(hyper_params['model'], classes=num_classes, encoder_weights=None).cuda()
-teacher = models.unet.Unet('resnet34', classes=num_classes, encoder_weights=None).cuda()
+student = models.unet.Unet(hyper_params['model'], classes=num_classes, encoder_weights=None).to(args.gpu)
+teacher = models.unet.Unet('resnet34', classes=num_classes, encoder_weights=None).to(args.gpu)
 teacher.load_state_dict(torch.load('../saved_models/camvid/resnet34/pretrained_0.pt'))
 # Freeze the teacher model
 teacher = unfreeze(teacher, 30)

@@ -29,8 +29,8 @@ def pixelwise_acc(mask1, mask2):
     return equals / (mask1.shape[0] * mask1.shape[1] * mask1.shape[2])
 
 
-def mean_iou(model, dataloader):
-    gpu1 = 'cuda:0'
+def mean_iou(model, dataloader, args):
+    gpu1 = args.gpu
     ious = list()
     for i, (data, target) in enumerate(dataloader):
         data, target = data.float().to(gpu1), target.long().to(gpu1)

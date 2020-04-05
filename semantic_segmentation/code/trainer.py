@@ -179,7 +179,7 @@ def train_stage(model, teacher, stage, sf_student, sf_teacher, train_loader, val
         model = model.to(gpu1)
         data, target = data.float().to(gpu1), target.long().to(gpu1)
 
-        prediction = model(data)
+        _ = model(data)
         _ = teacher(data)
         val_loss = loss_function(sf_student[stage].features, sf_teacher[stage].features)
 
@@ -194,82 +194,6 @@ def train_stage(model, teacher, stage, sf_student, sf_teacher, train_loader, val
         print('new lowest_val_loss', lowest_val_loss)
 
     return model, lowest_val_loss, avg_loss, avg_val_loss
-
-# Not required. Will be removed in next commit after confirming.
-# def train_trad_kd(model, teacher, sf_teacher, sf_student, train_loader, val_loader, num_classes, epoch, num_epochs,
-#                   loss_function1, loss_function2, optimiser, scheduler, savename, highest_iou, args):
-#     model.train()
-#     losses = list()
-#     val_losses = list()
-#     gpu1 = args.gpu
-#     ious = list()
-#     pixel_accs = list()
-#     dices = list()
-#     max_iou = highest_iou
-#     savename2 = savename[: -3] + '_opt.pt'
-#     loop = tqdm(train_loader)
-#     num_steps = len(loop)
-#     for data, target in loop:
-#         model.train()
-#         model = model.to(gpu1)
-#         teacher = teacher.to(gpu1)
-#         data, target = data.float().to(gpu1), target.long().to(gpu1)
-#
-#         optimiser.zero_grad()
-#         prediction = model(data)
-#         _ = teacher(data)
-#
-#         loss = loss_function1(prediction, target) + loss_function2(sf_teacher[0].features,
-#                                                                    sf_student[0].features) + loss_function2(
-#             sf_teacher[1].features, sf_student[1].features)
-#         # prediction = F.softmax(prediction, dim=1)
-#         # prediction = torch.argmax(prediction, axis=1).squeeze(1)
-#
-#         losses.append(loss.item())
-#
-#         loss.backward()
-#         optimiser.step()
-#         scheduler.step()
-#
-#         loop.set_description('Epoch {}/{}'.format(epoch + 1, num_epochs))
-#         loop.set_postfix(loss=loss.item())
-#
-#     model.eval()
-#     for data, target in val_loader:
-#         model = model.to(gpu1)
-#         teacher = teacher.to(gpu1)
-#         data, target = data.float().to(gpu1), target.long().to(gpu1)
-#
-#         prediction = model(data)
-#         _ = teacher(data)
-#         val_loss = loss_function1(prediction, target) + loss_function2(sf_teacher[0].features,
-#                                                                        sf_student[0].features) + loss_function2(
-#             sf_teacher[1].features, sf_student[1].features)
-#         prediction = F.softmax(prediction, dim=1)
-#         prediction = torch.argmax(prediction, axis=1).squeeze(1)
-#
-#         ious.append(iou(target, prediction, num_classes=num_classes))
-#         dices.append(dice_coeff(target, prediction, num_classes=num_classes))
-#         pixel_accs.append(pixelwise_acc(prediction, target))
-#         val_losses.append(val_loss.item())
-#
-#     avg_iou = sum(ious) / len(ious)
-#     avg_dice_coeff = sum(dices) / len(dices)
-#     avg_pixel_acc = sum(pixel_accs) / len(pixel_accs)
-#
-#     if avg_iou > max_iou:
-#         max_iou = avg_iou
-#         torch.save(model.state_dict(), savename)
-#         torch.save(optimiser.state_dict(), savename2)
-#         print('new max_iou', max_iou)
-#
-#     print('avg_iou: ', avg_iou)
-#     print('avg_pixel_acc: ', avg_pixel_acc)
-#     print('avg_dice_coeff: ', avg_dice_coeff)
-#
-#     avg_loss = sum(losses) / len(losses)
-#     avg_val_loss = sum(val_losses) / len(val_losses)
-#     return model, max_iou, avg_loss, avg_val_loss, avg_iou, avg_pixel_acc, avg_dice_coeff
 
 
 def train_simult(model, teacher, sf_teacher, sf_student, train_loader, val_loader, num_classes, epoch, num_epochs,
@@ -348,13 +272,14 @@ def train_simult(model, teacher, sf_teacher, sf_student, train_loader, val_loade
 
 def train_stagewise(hyper_params, teacher, student, sf_teacher, sf_student, trainloader, valloader, args):
     for stage in range(10):
-        # update hyperparams dictionary
-        hyper_params['stage'] = stage
-
         # Load previous stage model (except zeroth stage)
         if stage != 0:
+            # hyperparams dict for loading previous stage weights
+            hyper_params['stage'] = stage - 1
             student.load_state_dict(torch.load(get_savename(hyper_params, mode='stagewise', p=args.percentage)))
 
+        # update hyperparams dictionary for current stage
+        hyper_params['stage'] = stage
         # Freeze all stages except current stage
         student = unfreeze(student, hyper_params['stage'])
 
@@ -390,44 +315,44 @@ def train_stagewise(hyper_params, teacher, student, sf_teacher, sf_student, trai
             experiment.log_metric('train_loss', train_loss)
             experiment.log_metric('val_loss', val_loss)
 
-        hyper_params['stage'] = 10
-        student.load_state_dict(torch.load(get_savename(hyper_params, mode='stagewise', p=args.percentage)))
-        # Freeze all stages except current stage
-        student = unfreeze(student, hyper_params['stage'])
-        project_name = 'stagewise-' + hyper_params['model']
-        experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name,
-                                workspace="semseg_kd")
-        experiment.log_parameters(hyper_params)
+    hyper_params['stage'] = 9
+    student.load_state_dict(torch.load(get_savename(hyper_params, mode='stagewise', p=args.percentage)))
+    hyper_params['stage'] = 10
+    # Freeze all stages except current stage
+    student = unfreeze(student, hyper_params['stage'])
+    project_name = 'stagewise-' + hyper_params['model']
+    experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name,
+                            workspace="semseg_kd")
+    experiment.log_parameters(hyper_params)
 
-        optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
-                                                        epochs=hyper_params['num_epochs'])
-        criterion = nn.CrossEntropyLoss(ignore_index=11)
+    optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
+                                                    epochs=hyper_params['num_epochs'])
+    criterion = nn.CrossEntropyLoss(ignore_index=11)
 
-        savename = get_savename(hyper_params, dataset=args.dataset, mode='classifier', p=args.percentage)
-        highest_iou = 0
-        losses = []
-        for epoch in range(hyper_params['num_epochs']):
-            student, highest_iou, train_loss, val_loss, avg_iou, avg_pixel_acc, avg_dice_coeff = train(
-                model=student,
-                train_loader=trainloader,
-                val_loader=valloader,
-                loss_function=criterion,
-                optimiser=optimizer,
-                scheduler=scheduler,
-                epoch=epoch,
-                num_epochs=
-                hyper_params[
-                    'num_epochs'],
-                savename=savename,
-                highest_iou=highest_iou,
-                args=args
-            )
-            experiment.log_metric('train_loss', train_loss)
-            experiment.log_metric('val_loss', val_loss)
-            experiment.log_metric('avg_iou', avg_iou)
-            experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
-            experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
+    savename = get_savename(hyper_params, dataset=args.dataset, mode='classifier', p=args.percentage)
+    highest_iou = 0
+    losses = []
+    for epoch in range(hyper_params['num_epochs']):
+        student, highest_iou, train_loss, val_loss, avg_iou, avg_pixel_acc, avg_dice_coeff = train(
+            model=student,
+            train_loader=trainloader,
+            val_loader=valloader,
+            num_classes=hyper_params['num_classes'],
+            loss_function=criterion,
+            optimiser=optimizer,
+            scheduler=scheduler,
+            epoch=epoch,
+            num_epochs=hyper_params['num_epochs'],
+            savename=savename,
+            highest_iou=highest_iou,
+            args=args
+        )
+        experiment.log_metric('train_loss', train_loss)
+        experiment.log_metric('val_loss', val_loss)
+        experiment.log_metric('avg_iou', avg_iou)
+        experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
+        experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
 
 
 def pretrain(hyper_params, unet, trainloader, valloader, args):
@@ -483,7 +408,11 @@ def train_simultaneous(hyper_params, teacher, student, sf_teacher, sf_student, t
     optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
                                                     epochs=hyper_params['num_epochs'])
-    criterion = nn.CrossEntropyLoss(ignore_index=11)
+    if hyper_params['dataset'] == 'camvid':
+        criterion = nn.CrossEntropyLoss(ignore_index=11)
+    else:
+        criterion = nn.CrossEntropyLoss(ignore_index=250)
+        hyper_params['num_classes'] = 19
     criterion2 = nn.MSELoss()
 
     savename = get_savename(hyper_params, dataset=args.dataset, mode='simultaneous', p=args.percentage)
@@ -519,19 +448,18 @@ def train_simultaneous(hyper_params, teacher, student, sf_teacher, sf_student, t
 
 def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, trainloader, valloader, args):
     for stage in range(2):
-        # update hyperparams dictionary
-        hyper_params['stage'] = stage
-
         # Load previous stage model (except zeroth stage)
         if stage != 0:
-            savename = '../saved_models/camvid/trad_kd_new/' + hyper_params['model'] + '/stage' + str(
-                hyper_params['stage'] - 1) + '/model' + str(hyper_params['seed']) + '.pt'
-            student.load_state_dict(torch.load(savename))
+            hyper_params['stage'] = stage - 1
+            student.load_state_dict(torch.load(get_savename(hyper_params, args.dataset, mode='traditional-stage', p=args.percentage)))
+
+        # update hyperparams dictionary
+        hyper_params['stage'] = stage
 
         # Freeze all stages except current stage
         student = unfreeze_trad(student, hyper_params['stage'])
 
-        project_name = 'new-trad-kd-' + hyper_params['model']
+        project_name = 'trad-kd-' + hyper_params['model']
         experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
         experiment.log_parameters(hyper_params)
 
@@ -540,9 +468,8 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
                                                         epochs=hyper_params['num_epochs'])
         criterion = nn.MSELoss()
 
-        savename = get_savename(hyper_params, args.dataset, mode='traditional-kd', p=args.percentage)
+        savename = get_savename(hyper_params, args.dataset, mode='traditional-stage', p=args.percentage)
         lowest_val_loss = 100
-        losses = []
         for epoch in range(hyper_params['num_epochs']):
             student, lowest_val_loss, train_loss, val_loss = train_stage(model=student,
                                                                          teacher=teacher,
@@ -562,27 +489,31 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
                                                                          )
             experiment.log_metric('train_loss', train_loss)
             experiment.log_metric('val_loss', val_loss)
+            print(round(val_loss, 6))
 
     # Classifier training
+    hyper_params['stage'] = 1
+    student.load_state_dict(torch.load(get_savename(hyper_params, args.dataset, mode='traditional-stage', p=args.percentage)))
     hyper_params['stage'] = 2
-    savename = get_savename(hyper_params, args.dataset, mode='traditional-kd', p=args.percentage)
-    student.load_state_dict(torch.load(savename))
 
     # Freeze all stages except current stage
     student = unfreeze_trad(student, hyper_params['stage'])
 
-    project_name = 'new-trad-kd-' + hyper_params['model']
+    project_name = 'trad-kd-' + hyper_params['model']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
     experiment.log_parameters(hyper_params)
 
     optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
                                                     epochs=hyper_params['num_epochs'])
-    criterion = nn.CrossEntropyLoss(ignore_index=11)
+    if hyper_params['dataset'] == 'camvid':
+        criterion = nn.CrossEntropyLoss(ignore_index=11)
+    else:
+        criterion = nn.CrossEntropyLoss(ignore_index=250)
+        hyper_params['num_classes'] = 19
 
     savename = get_savename(hyper_params, args.dataset, mode='traditional-kd', p=args.percentage)
     highest_iou = 0
-    losses = []
     for epoch in range(hyper_params['num_epochs']):
         student, highest_iou, train_loss, val_loss, avg_iou, avg_pixel_acc, avg_dice_coeff = train(model=student,
                                                                                                    train_loader=trainloader,
@@ -616,7 +547,7 @@ def evaluate(valloader, args, params, mode):
             unet = models.unet.Unet(model_name, classes=params['num_classes'], encoder_weights=None).cuda()
             unet.load_state_dict(
                 torch.load(get_savename(params, dataset=args.dataset, mode=mode, p=perc)))
-            current_val_iou = mean_iou(unet, valloader)
+            current_val_iou = mean_iou(unet, valloader, args)
             print(round(current_val_iou, 5))
 
     print(f'Full data results for {mode}')
@@ -624,5 +555,5 @@ def evaluate(valloader, args, params, mode):
         print('model : ', model_name)
         unet = models.unet.Unet(model_name, classes=params['num_classes'], encoder_weights=None).cuda()
         unet.load_state_dict(torch.load(get_savename(params, dataset=args.dataset, mode=mode)))
-        current_val_iou = mean_iou(unet, valloader)
+        current_val_iou = mean_iou(unet, valloader, args)
         print(round(current_val_iou, 5))

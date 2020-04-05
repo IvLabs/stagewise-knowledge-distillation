@@ -2,9 +2,9 @@ import torch
 from torch.utils.data import DataLoader
 
 import models
-from args import *
+from arguments import *
 from dataset import get_dataset
-from trainer import unfreeze, train_simulataneous
+from trainer import unfreeze, train_simultaneous
 from utils import *
 
 args = get_args('Simultaneous training of UNet based on ResNet encoder')
@@ -12,18 +12,20 @@ args = get_args('Simultaneous training of UNet based on ResNet encoder')
 torch.cuda.set_device(args.gpu)
 
 hyper_params = {
-    "model": args.m,
-    "seed": args.s,
+    "model": args.model,
+    "seed": args.seed,
     "num_classes": 12,
     "batch_size": 8,
-    "num_epochs": args.e,
+    "num_epochs": args.epoch,
     "learning_rate": 1e-4
 }
 
-torch.manual_seed(args.s)
-torch.cuda.manual_seed(args.s)
+torch.manual_seed(hyper_params['seed'])
+if args.gpu != 'cpu':
+    torch.cuda.set_device(args.gpu)
+    torch.cuda.manual_seed(hyper_params['seed'])
 
-train_dataset, valid_dataset, num_classes = get_dataset(args.d, args.p)
+train_dataset, valid_dataset, num_classes = get_dataset(args.dataset, args.percentage)
 hyper_params['num_classes'] = num_classes
 
 trainloader = DataLoader(train_dataset, batch_size=hyper_params['batch_size'], shuffle=True, drop_last=True)
@@ -37,4 +39,4 @@ teacher = unfreeze(teacher, 30)
 
 sf_student, sf_teacher = get_features(student, teacher)
 
-train_simulataneous(hyper_params, teacher, student, sf_teacher, sf_student, trainloader, valloader, args)
+train_simultaneous(hyper_params, teacher, student, sf_teacher, sf_student, trainloader, valloader, args)

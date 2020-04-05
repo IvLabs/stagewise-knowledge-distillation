@@ -5,7 +5,6 @@ import cv2
 import torchvision
 from PIL import Image
 from torch.utils import data
-from torchvision import transforms
 from torchvision.datasets.utils import *
 
 from utils import *
@@ -24,7 +23,7 @@ class CamVid(data.Dataset):
                'tree', 'signsymbol', 'fence', 'car',
                'pedestrian', 'bicyclist', 'unlabelled']
 
-    def __init__(self, DATA_DIR=None, mode='train', p=None):
+    def __init__(self, DATA_DIR=None, mode='train', p=None, transform=False):
         self.p = p
         self.mode = mode
         images_dir, masks_dir = self.get_dirs(DATA_DIR)
@@ -34,7 +33,8 @@ class CamVid(data.Dataset):
 
         # convert str names to class values on masks
         self.class_values = [self.CLASSES.index(cls.lower()) for cls in self.classes]
-        # self.transform = self.transform
+        if transform:
+            self.transform = get_tf()
 
     def __getitem__(self, i):
         # read data
@@ -62,17 +62,11 @@ class CamVid(data.Dataset):
         return len(self.ids)
 
     def get_dirs(self, DATA_DIR):
-        if self.p is None:
+        if self.p is None or self.mode != 'train':
             return os.path.join(DATA_DIR, self.mode), os.path.join(DATA_DIR, self.mode + "annot")
         else:
-            os.path.join(DATA_DIR, self.mode + 'small' + str(self.p)), os.path.join(DATA_DIR, self.mode + 'smallannot')
-
-    @property
-    def transform(self):
-        return transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.41189489566336, 0.4251328133025, 0.4326707089857],
-                                 std=[0.27413549931506, 0.28506257482912, 0.28284674400252])])
+            return os.path.join(DATA_DIR, self.mode + 'small' + str(self.p)), os.path.join(DATA_DIR,
+            self.mode + 'smallannot' + str(self.p))
 
     @property
     def classes(self):
@@ -264,10 +258,10 @@ def get_dataset(dataset="camvid", p=None, test=False):
     if dataset == 'camvid':
         num_classes = 12
         DATA_DIR = '../data/CamVid/'
-        train_dataset = CamVid(DATA_DIR, mode='train', p=p)
-        valid_dataset = CamVid(DATA_DIR, mode='val', p=p)
+        train_dataset = CamVid(DATA_DIR, mode='train', p=p, transform=True)
+        valid_dataset = CamVid(DATA_DIR, mode='val', p=p, transform=True)
         if test:
-            test_dataset = CamVid(DATA_DIR, mode='test', p=p)
+            test_dataset = CamVid(DATA_DIR, mode='test', p=p, transform=True)
 
     elif dataset == 'cityscapes':
         num_classes = 19

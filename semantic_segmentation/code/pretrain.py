@@ -18,7 +18,6 @@ hyper_params = {
     "batch_size": 8,
     "num_epochs": args.epoch,
     "learning_rate": 1e-4,
-    "repeat": 1
 }
 
 torch.manual_seed(hyper_params['seed'])
@@ -33,4 +32,4 @@ trainloader = DataLoader(train_dataset, batch_size=hyper_params['batch_size'], s
 valloader = DataLoader(valid_dataset, batch_size=8, shuffle=False)
 unet = models.unet.Unet(hyper_params['model'], classes=num_classes, encoder_weights=None).to(args.gpu)
 
-pretrain(hyper_params, unet, valloader, valloader, args)
+pretrain(hyper_params, unet, trainloader, valloader, args)

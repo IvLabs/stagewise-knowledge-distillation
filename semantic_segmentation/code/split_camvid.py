@@ -3,7 +3,7 @@ import random
 import shutil
 import sys
 
-from args import get_args
+from arguments import get_args
 
 random.seed(1)
 
@@ -11,7 +11,7 @@ args = get_args('args for datasplit (camvid)', mode='data')
 
 current_path = os.path.abspath('..')
 
-perc = args.p
+perc = args.percentage
 
 if not 0 < perc < 100:
     print('Illegal usage of -p, only between 0 and 100')

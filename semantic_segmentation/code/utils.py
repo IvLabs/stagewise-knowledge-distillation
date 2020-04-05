@@ -1,17 +1,25 @@
+from torchvision import transforms
+import os
 import numpy as np
 
 
 def get_savename(hyper_params, dataset='camvid', mode=None, p=None):
-    assert mode in ['stagewise', 'classifier', 'traditional-kd', 'simultaneous', 'pretrain']
+    assert mode in ['stagewise', 'classifier', 'traditional-kd', 'traditional-stage', 'simultaneous', 'pretrain']
+
     if p is not None:
-        less = f'/less_data/_{str(p)}_'
+        less = f'less_data{str(p)}'
     else:
-        less = '/b'
+        less = 'full_data'
+
     if mode == 'stagewise':
-        return f'../saved_models/{dataset}/{less}/{hyper_params["model"]}/stage/{str(hyper_params["stage"] - 1)}/model/ \
-                {str(hyper_params["seed"])}.pt'
+        savename = f'../saved_models/{dataset}/{less}/{hyper_params["model"]}/stage{str(hyper_params["stage"])}'
+    elif mode == 'traditional-stage':
+        savename = f'../saved_models/{dataset}/{less}/{hyper_params["model"]}/traditional-kd/stage{str(hyper_params["stage"])}'
     else:
-        return f'../saved_models/{dataset}/{less}/{hyper_params["model"]}/{mode}/model/{str(hyper_params["seed"])}.pt'
+        savename = f'../saved_models/{dataset}/{less}/{hyper_params["model"]}/{mode}'
+
+    os.makedirs(savename, exist_ok=True)
+    return savename + f'/model{str(hyper_params["seed"])}.pt'
 
 
 class UnNormalize(object):
@@ -24,6 +32,11 @@ class UnNormalize(object):
             t.mul_(s).add_(m)
             # The normalize code -> t.sub_(m).div_(s)
         return tensor
+
+def get_tf():
+    return transforms.Compose([transforms.ToTensor(),
+                            transforms.Normalize(mean=[0.41189489566336, 0.4251328133025, 0.4326707089857],
+                            std=[0.27413549931506, 0.28506257482912, 0.28284674400252])])
 
 
 class encode_segmap(object):

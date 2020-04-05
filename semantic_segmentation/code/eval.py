@@ -28,8 +28,3 @@ evaluate(valloader, args, params, mode='classifier') # stagewise training
 evaluate(valloader, args, params, mode='simultaneous') # simultanous training
 
 evaluate(valloader, args, params, mode='traditional-kd') # traditional-kd training
-
-
-
-
-

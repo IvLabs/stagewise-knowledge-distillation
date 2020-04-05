@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from shutil import copyfile
 
-from args import get_args
+from arguments import get_args
 
 random.seed(1)
 
@@ -13,7 +13,7 @@ args = get_args('args for datasplit (citiscapes)', mode='data')
 current_path = os.path.abspath('..')
 train_path = "/home/himanshu/cityscape/leftImg8bit/train"
 train_path_lb = "/home/himanshu/cityscape/gtFine/train"
-perc = args.p
+perc = args.percentage
 
 if perc < 0 or perc > 100:
     print('Illegal usage of -p, only between 0 and 100')
