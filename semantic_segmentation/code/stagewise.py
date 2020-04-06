@@ -34,7 +34,7 @@ valloader = DataLoader(valid_dataset, batch_size=1, shuffle=False)
 
 student = models.unet.Unet(hyper_params['model'], classes=num_classes, encoder_weights=None).to(args.gpu)
 teacher = models.unet.Unet('resnet34', classes=num_classes, encoder_weights=None).to(args.gpu)
-teacher.load_state_dict(torch.load('../saved_models/camvid/resnet34/pretrained_0.pt'))
+teacher.load_state_dict(torch.load('../saved_models/camvid/resnet34/pretrained_0.pt', map_location=args.gpu))
 # Freeze the teacher model
 teacher = unfreeze(teacher, 30)
 

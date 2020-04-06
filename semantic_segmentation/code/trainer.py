@@ -401,7 +401,7 @@ def pretrain(hyper_params, unet, trainloader, valloader, args):
 
 
 def train_simultaneous(hyper_params, teacher, student, sf_teacher, sf_student, trainloader, valloader, args):
-    project_name = 'simultaneous-' + hyper_params['model']
+    project_name = 'simultaneous-' + hyper_params['dataset'] + '-' + hyper_params['model']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
     experiment.log_parameters(hyper_params)
 
@@ -459,7 +459,7 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
         # Freeze all stages except current stage
         student = unfreeze_trad(student, hyper_params['stage'])
 
-        project_name = 'trad-kd-' + hyper_params['model']
+        project_name = 'trad-kd-' + hyper_params['dataset'] + '-' + hyper_params['model']
         experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
         experiment.log_parameters(hyper_params)
 
@@ -499,7 +499,7 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
     # Freeze all stages except current stage
     student = unfreeze_trad(student, hyper_params['stage'])
 
-    project_name = 'trad-kd-' + hyper_params['model']
+    project_name = 'trad-kd-' + hyper_params['dataset'] + '-' + hyper_params['model']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
     experiment.log_parameters(hyper_params)
 
