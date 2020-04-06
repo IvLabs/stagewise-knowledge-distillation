@@ -9,7 +9,7 @@ random.seed(1)
 
 args = get_args('args for datasplit (camvid)', mode='data')
 
-current_path = os.path.abspath('..')
+current_path = os.path.abspath('')
 
 perc = args.percentage
 
