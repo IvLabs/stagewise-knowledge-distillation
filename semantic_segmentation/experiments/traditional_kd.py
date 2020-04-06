@@ -4,9 +4,9 @@ from torch.utils.data import DataLoader
 
 import models
 from arguments import get_args
-from dataset import get_dataset
-from trainer import unfreeze, train_traditional
-from utils import get_features_trad
+from dataset.dataset import get_dataset
+from experiments.trainer import unfreeze, train_traditional
+from utils.utils import get_features_trad
 
 args = get_args(desc='traditional kd training of UNet based on ResNet encoder')
 

@@ -5,8 +5,8 @@ from torch.utils.data import DataLoader
 
 import models
 from arguments import get_args
-from dataset import get_dataset
-from trainer import pretrain
+from datasets.dataset import get_dataset
+from experiments.trainer import pretrain
 
 args = get_args(desc="standalone training for small dataset")
 hyper_params = {

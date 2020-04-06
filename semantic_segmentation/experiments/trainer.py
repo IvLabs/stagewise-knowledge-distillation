@@ -5,8 +5,8 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 import models
-from metrics import pixelwise_acc, dice_coeff, iou, mean_iou
-from utils import get_savename
+from utils.metrics import pixelwise_acc, dice_coeff, iou, mean_iou
+from utils.utils import get_savename
 
 
 def train(model, train_loader, val_loader, num_classes, epoch, num_epochs, loss_function, optimiser, scheduler,

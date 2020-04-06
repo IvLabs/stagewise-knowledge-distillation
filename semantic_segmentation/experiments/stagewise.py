@@ -4,10 +4,9 @@ from torch.utils.data import DataLoader
 
 import models
 from arguments import get_args
-from dataset import get_dataset
-from trainer import train_stagewise, unfreeze
-from utils import *
-
+from datasets.dataset import get_dataset
+from experiments.trainer import unfreeze, train_stagewise
+from utils.utils import *
 args = get_args(desc='Stagewise training using less data of UNet based on ResNet encoder')
 hyper_params = {
     "dataset": args.dataset,

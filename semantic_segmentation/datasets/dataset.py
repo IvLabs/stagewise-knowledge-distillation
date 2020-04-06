@@ -7,7 +7,7 @@ from PIL import Image
 from torch.utils import data
 from torchvision.datasets.utils import *
 
-from utils import *
+from utils.utils import *
 
 
 class CamVid(data.Dataset):

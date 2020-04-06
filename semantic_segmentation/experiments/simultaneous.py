@@ -4,9 +4,9 @@ from torch.utils.data import DataLoader
 
 import models
 from arguments import *
-from dataset import get_dataset
-from trainer import unfreeze, train_simultaneous
-from utils import *
+from datasets.dataset import get_dataset
+from experiments.trainer import unfreeze, train_simultaneous
+from utils.utils import *
 
 args = get_args('Simultaneous training of UNet based on ResNet encoder')
 

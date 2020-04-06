@@ -1,9 +1,9 @@
 import torch
 from torch.utils.data import DataLoader
 
-from args import get_args
-from dataset import get_dataset
-from trainer import evaluate
+from arguments import get_args
+from dataset.dataset import get_dataset
+from experiments.trainer import evaluate
 
 
 args = get_args(desc="args for evaluation", mode='eval')
