@@ -10,7 +10,7 @@ random.seed(1)
 
 args = get_args('args for datasplit (citiscapes)', mode='data')
 
-current_path = os.path.abspath('..')
+current_path = os.path.abspath('')
 train_path = "/home/himanshu/cityscape/leftImg8bit/train"
 train_path_lb = "/home/himanshu/cityscape/gtFine/train"
 perc = args.percentage
