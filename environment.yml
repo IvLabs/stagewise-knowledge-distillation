@@ -1,4 +1,5 @@
-name: skd_semseg
+# only for semseg, will be updated soon to include img clsf.
+name: stagewise-knowledge-distillation
 dependencies:
   - python=3.6
   - pytorch>=1.0

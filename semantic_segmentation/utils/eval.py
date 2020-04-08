@@ -1,23 +1,24 @@
 import torch
 from torch.utils.data import DataLoader
 
-from arguments import get_args
-from dataset.dataset import get_dataset
-from experiments.trainer import evaluate
+from semantic_segmentation.arguments import get_args
+from semantic_segmentation.datasets.dataset import get_dataset
+from semantic_segmentation.experiments.trainer import evaluate
 
 
 args = get_args(desc="args for evaluation", mode='eval')
 
-torch.cuda.set_device(args.gpu)
+if args.gpu != 'cpu':
+	torch.cuda.set_device(args.gpu)
 
-_, valid_dataset, test_dataset, num_classes = get_dataset(args.d, None, True)
+_, valid_dataset, test_dataset, num_classes = get_dataset(args.dataset, None, True)
 
 valloader = DataLoader(valid_dataset, batch_size=1, shuffle=False)
-testloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+# testloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
 params = {
     "model": None,
-    "seed": args.s,
+    "seed": args.seed,
     'num_classes': num_classes
 }
 

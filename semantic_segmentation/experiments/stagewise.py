@@ -2,7 +2,7 @@ import comet_ml
 import torch
 from torch.utils.data import DataLoader
 
-import semantic_segmentation.models
+import semantic_segmentation.models as models
 from semantic_segmentation.arguments import get_args
 from semantic_segmentation.datasets.dataset import get_dataset
 from semantic_segmentation.experiments.trainer import unfreeze, train_stagewise

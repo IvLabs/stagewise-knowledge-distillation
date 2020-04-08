@@ -356,12 +356,7 @@ def train_stagewise(hyper_params, teacher, student, sf_teacher, sf_student, trai
 
 
 def pretrain(hyper_params, unet, trainloader, valloader, args):
-    if args.percentage is not None:
-        s = 'small' + str(args.percentage) + '-'
-    else:
-        s = ''
-
-    project_name = 'pretrain-' + s + hyper_params['dataset'] + '-' + hyper_params['model']
+    project_name = 'pretrain-' + hyper_params['dataset'] + '-' + hyper_params['model']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
     experiment.log_parameters(hyper_params)
 
@@ -544,7 +539,7 @@ def evaluate(valloader, args, params, mode):
         for model_name in ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26']:
             params['model'] = model_name
             print('model : ', model_name)
-            unet = models.unet.Unet(model_name, classes=params['num_classes'], encoder_weights=None).cuda()
+            unet = models.unet.Unet(model_name, classes=params['num_classes'], encoder_weights=None).to(args.gpu)
             unet.load_state_dict(
                 torch.load(get_savename(params, dataset=args.dataset, mode=mode, p=perc)))
             current_val_iou = mean_iou(unet, valloader, args)
@@ -553,7 +548,7 @@ def evaluate(valloader, args, params, mode):
     print(f'Full data results for {mode}')
     for model_name in ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26']:
         print('model : ', model_name)
-        unet = models.unet.Unet(model_name, classes=params['num_classes'], encoder_weights=None).cuda()
+        unet = models.unet.Unet(model_name, classes=params['num_classes'], encoder_weights=None).to(args.gpu)
         unet.load_state_dict(torch.load(get_savename(params, dataset=args.dataset, mode=mode)))
         current_val_iou = mean_iou(unet, valloader, args)
         print(round(current_val_iou, 5))
