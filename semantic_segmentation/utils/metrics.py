@@ -1,5 +1,5 @@
 import torch
-import torch.functional as F
+import torch.nn.functional as F
 
 
 def iou(mask1, mask2, num_classes=19, smooth=1e-6):

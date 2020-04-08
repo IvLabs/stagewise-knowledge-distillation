@@ -533,6 +533,12 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
 
 
 def evaluate(valloader, args, params, mode):
+    print(f'Teacher Accuracy')
+    unet = models.unet.Unet('resnet34', classes=params['num_classes'], encoder_weights=None).to(args.gpu)
+    unet.load_state_dict(torch.load('../saved_models/' + args.dataset + '/resnet34/pretrained_0.pt', map_location=args.gpu))
+    current_val_iou = mean_iou(unet, valloader, args)
+    print(round(current_val_iou, 5))
+
     print(f'Fractional data results for {mode}')
     for perc in [10, 20, 30, 40]:
         print('perc : ', perc)
