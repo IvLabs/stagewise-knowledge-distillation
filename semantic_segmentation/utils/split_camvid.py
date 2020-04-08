@@ -3,7 +3,7 @@ import random
 import shutil
 import sys
 
-from arguments import get_args
+from semantic_segmentation.arguments import get_args
 
 random.seed(1)
 

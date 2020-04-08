@@ -4,9 +4,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-import models
-from utils.metrics import pixelwise_acc, dice_coeff, iou, mean_iou
-from utils.utils import get_savename
+import semantic_segmentation.models as models
+from semantic_segmentation.utils.metrics import pixelwise_acc, dice_coeff, iou, mean_iou
+from semantic_segmentation.utils.utils import get_savename
 
 
 def train(model, train_loader, val_loader, num_classes, epoch, num_epochs, loss_function, optimiser, scheduler,

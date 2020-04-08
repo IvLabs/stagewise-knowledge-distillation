@@ -2,11 +2,11 @@ import comet_ml
 import torch
 from torch.utils.data import DataLoader
 
-import models
-from arguments import get_args
-from dataset.dataset import get_dataset
-from experiments.trainer import unfreeze, train_traditional
-from utils.utils import get_features_trad
+import semantic_segmentation.models as models
+from semantic_segmentation.arguments import get_args
+from semantic_segmentation.datasets.dataset import get_dataset
+from semantic_segmentation.experiments.trainer import unfreeze, train_traditional
+from semantic_segmentation.utils.utils import get_features_trad
 
 args = get_args(desc='traditional kd training of UNet based on ResNet encoder')
 

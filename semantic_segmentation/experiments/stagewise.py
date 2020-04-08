@@ -2,11 +2,11 @@ import comet_ml
 import torch
 from torch.utils.data import DataLoader
 
-import models
-from arguments import get_args
-from datasets.dataset import get_dataset
-from experiments.trainer import unfreeze, train_stagewise
-from utils.utils import *
+import semantic_segmentation.models
+from semantic_segmentation.arguments import get_args
+from semantic_segmentation.datasets.dataset import get_dataset
+from semantic_segmentation.experiments.trainer import unfreeze, train_stagewise
+from semantic_segmentation.utils.utils import *
 args = get_args(desc='Stagewise training using less data of UNet based on ResNet encoder')
 hyper_params = {
     "dataset": args.dataset,
