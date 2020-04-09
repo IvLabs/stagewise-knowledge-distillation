@@ -13,12 +13,7 @@ This repository presents the code implementation for [Stagewise Knowledge Distil
 
 ### Architectures Used
 Following [ResNet](https://arxiv.org/abs/1512.03385) architectures are used:
-- ResNet10
-- ResNet14
-- ResNet18
-- ResNet20
-- ResNet26
-- ResNet34
+- ResNet - {10, 14, 18, 20, 26, 34}
 
 Note: ResNet34 is used as a teacher (being a standard architecture), while others are used as student models.
 
