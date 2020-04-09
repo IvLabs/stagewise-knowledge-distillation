@@ -1,5 +1,5 @@
 # only for semseg, will be updated soon to include img clsf.
-name: stagewise-knowledge-distillation
+name: skd
 dependencies:
   - python=3.6
   - pytorch>=1.0
@@ -12,3 +12,4 @@ dependencies:
     - segmentation_models_pytorch
     - comet_ml
     - opencv-python
+    - fastai
