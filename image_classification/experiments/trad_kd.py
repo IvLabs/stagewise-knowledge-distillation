@@ -95,16 +95,16 @@ for stage in range(1) :
     
     net.cpu()
     # no need to load model for 0th stage training
-    # if hyper_params['stage'] == 0 : 
-    #     filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
-    # # separate if conditions for stage 1 and others because of irregular naming convention
-    # # in the student model.
-    # elif hyper_params['stage'] == 1 : 
-    #     filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage0/model' + str(hyper_params['repeated']) + '.pt'
-    #     net.load_state_dict(torch.load(filename, map_location = 'cpu'))
-    # else : 
-    #     filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
-    #     net.load_state_dict(torch.load(filename, map_location = 'cpu'))
+    if hyper_params['stage'] == 0 : 
+        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+    # separate if conditions for stage 1 and others because of irregular naming convention
+    # in the student model.
+    elif hyper_params['stage'] == 1 : 
+        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage0/model' + str(hyper_params['repeated']) + '.pt'
+        net.load_state_dict(torch.load(filename, map_location = 'cpu'))
+    else : 
+        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+        net.load_state_dict(torch.load(filename, map_location = 'cpu'))
     
     if torch.cuda.is_available() : 
         net = net.cuda()

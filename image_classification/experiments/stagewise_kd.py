@@ -7,15 +7,9 @@ import argparse
 import os
 from image_classification.arguments import get_args
 from image_classification.datasets.dataset import get_dataset
-from image_classification.utils.utils import _get_accuracy, SaveFeatures, get_model
+from image_classification.utils.utils import *
 from image_classification.models.custom_resnet import *
 
-# parser = argparse.ArgumentParser(description = 'Stagewise training of ResNet type model')
-# parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
-# parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
-# parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
-# parser.add_argument('-s', type = int, help = 'Give random seed')
-# args = parser.parse_args()
 
 args = get_args(description='Stagewise KD', mode='train')
 
@@ -36,60 +30,31 @@ hyper_params = {
     "percentage":args.percentage
 }
 
-# load_name = str(hyper_params['dataset'])
-# if hyper_params['dataset'] == 'cifar10' : 
-#     load_name = str(hyper_params['dataset'])[ : -2]
-
 data = get_dataset(dataset=hyper_params['dataset'],
                    batch_size=hyper_params['batch_size'],
                    percentage=args.percentage)
 
-# learn = cnn_learner(data, models.resnet34, metrics = accuracy, pretrained=False)
-# learn = learn.load(os.path.expanduser("~") + '/.fastai/data/' + str(hyper_params['dataset']) + '2/models/resnet34_' + load_name + '_bs64')
-# learn.freeze()
-
-# if hyper_params['model'] == 'resnet10' :
-#     net = resnet10(pretrained = False, progress = False)
-# elif model_name == 'resnet14' : 
-#     net = resnet14(pretrained = False, progress = False)
-# elif model_name == 'resnet18' :
-#     net = resnet18(pretrained = False, progress = False)
-# elif model_name == 'resnet20' :
-#     net = resnet20(pretrained = False, progress = False)
-# elif model_name == 'resnet26' :
-#     net = resnet26(pretrained = False, progress = False)
-
 learn, net = get_model(hyper_params['model'], hyper_params['dataset'], data, teach=True)
 
 for stage in range(5) :
-    val = 'val'
-    sz = 224
-    stats = imagenet_stats
-
     # stage should be in 0 to 5 (5 for classifier stage)
     hyper_params['stage'] = stage
     
-    net.cpu()
-    # no need to load model for 0th stage training
-    if hyper_params['stage'] == 0 : 
-        filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['seed']) + '.pt'
-    # separate if conditions for stage 1 and others because of irregular naming convention
-    # in the student model.
-    # elif hyper_params['stage'] == 1 : 
-    #     filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage0/model' + str(hyper_params['seed']) + '.pt'
-    #     net.load_state_dict(torch.load(filename, map_location = 'cpu'))
-    else : 
-        filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'] - 1) + '/model' + str(hyper_params['seed']) + '.pt'
-        net.load_state_dict(torch.load(filename, map_location = 'cpu'))
+    if hyper_params['stage'] != 0:
+        hyper_params['stage'] -= 1
+        # load previous stage weights
+        filename = get_savename(hyper_params, experiment='stagewise-kd')
+        net.load_state_dict(torch.load(filename, map_location='cpu'))
+        hyper_params['stage'] += 1
     
     if args.gpu != 'cpu': 
-        net = net.cuda()
+        net = net.to(args.gpu)
 
-    for name, param in net.named_parameters() : 
+    for name, param in net.named_parameters():
         param.requires_grad = False
-        if name[5] == str(hyper_params['stage']) and hyper_params['stage'] != 0 :
+        if name[5] == str(hyper_params['stage']) and hyper_params['stage'] != 0:
             param.requires_grad = True
-        elif (name[0] == 'b' or name[0] == 'c') and hyper_params['stage'] == 0 : 
+        elif (name[0] == 'b' or name[0] == 'c') and hyper_params['stage'] == 0:
             param.requires_grad = True
 
     # saving outputs of all Basic Blocks
@@ -97,7 +62,7 @@ for stage in range(5) :
     sf = [SaveFeatures(m) for m in [mdl[0][2], mdl[0][4], mdl[0][5], mdl[0][6], mdl[0][7]]]
     sf2 = [SaveFeatures(m) for m in [net.relu2, net.layer1, net.layer2, net.layer3, net.layer4]]
     
-    project_name = 'kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
+    project_name = 'stagewise-kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     if hyper_params['stage'] == 0 :
@@ -227,7 +192,7 @@ for name, param in net.named_parameters() :
     if name[0] == 'f' :
         param.requires_grad = True
     
-project_name = 'kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
+project_name = 'stagewise-kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
 experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
 experiment.log_parameters(hyper_params)
 optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])

@@ -4,13 +4,38 @@ from fastai.vision import *
 from image_classification.models.custom_resnet import *
 
 
-class SaveFeatures :
-    def __init__(self, m) : 
+class SaveFeatures:
+    def __init__(self, m):
         self.handle = m.register_forward_hook(self.hook_fn)
-    def hook_fn(self, m, inp, outp) : 
+    def hook_fn(self, m, inp, outp):
         self.features = outp
-    def remove(self) :
+    def remove(self):
         self.handle.remove()
+
+
+def get_savename(hyper_params, experiment):
+    assert experiment in ['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'no-teacher', 'stagewise-classifier']
+    less = 'full_data'
+    if hyper_params['percentage'] is not None:
+        less = 'less_data' + str(hyper_params['percentage'])
+
+    if experiment == 'stagewise-kd':
+        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/stagewise-kd/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'])
+    
+    elif experiment == 'traditional-kd':
+        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/traditional-kd/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'])
+
+    elif experiment == 'simultaneous-kd':
+        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/simultaneous-kd/' + str(hyper_params['model'])
+
+    elif experiment == 'stagewise-classifier':
+        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/stagewise-kd/' + str(hyper_params['model']) + '_classifier'
+        
+    elif experiment == 'no_teacher':
+        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/no-teacher/' + str(hyper_params['model']) + '_classifier'
+    
+    os.makedirs(savename, exist_ok=True)
+    return savename + '/model' + str(hyper_params['seed']) + '.pt'
 
 
 def get_model(model_name, dataset, data, teach=False):
