@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from fastai.vision import *
-from models.custom_resnet import *
+from image_classification.models.custom_resnet import *
 
 
 class SaveFeatures :
@@ -11,6 +11,34 @@ class SaveFeatures :
         self.features = outp
     def remove(self) :
         self.handle.remove()
+
+
+def get_model(model_name, dataset, data, teach=False):
+    if teach:
+        load_name = dataset
+        if dataset == 'cifar10' : 
+            load_name = dataset[ : -2]
+        else:
+            load_name = dataset + '2'
+        teacher = cnn_learner(data, models.resnet34, metrics=accuracy, pretrained=False)
+        teacher = teacher.load(os.path.expanduser("~") + '/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
+        teacher.freeze()
+    
+    if model_name == 'resnet10' :
+        net = resnet10(pretrained = False, progress = False)
+    elif model_name == 'resnet14' : 
+        net = resnet14(pretrained = False, progress = False)
+    elif model_name == 'resnet18' :
+        net = resnet18(pretrained = False, progress = False)
+    elif model_name == 'resnet20' :
+        net = resnet20(pretrained = False, progress = False)
+    elif model_name == 'resnet26' :
+        net = resnet26(pretrained = False, progress = False)
+    
+    if teach:
+        return teacher, net
+    else:
+        return net  
 
 
 def _get_accuracy(dataloader, Net):

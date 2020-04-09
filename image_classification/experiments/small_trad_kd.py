@@ -1,14 +1,12 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
-# from comet_ml import Experiment
+from comet_ml import Experiment
 from fastai.vision import *
 import torch
 import argparse
 from torchsummary import summary
-from core import SaveFeatures
-from utils import _get_accuracy
+from utils import _get_accuracy, SaveFeatures
 from models.custom_resnet import *
-torch.cuda.set_device(0)
 
 parser = argparse.ArgumentParser(description = 'Traditional KD of ResNet type model using less data')
 parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')

@@ -1,6 +1,6 @@
 from fastai.vision import *
 
-def get_dataset(dataset, percentage=None, test=False):
+def get_dataset(dataset, batch_size, percentage=None):
     val = 'val'
     sz = 224
     stats = imagenet_stats
@@ -13,10 +13,13 @@ def get_dataset(dataset, percentage=None, test=False):
     else:
         sys.exit(f'invalid dataset : {dataset}')
     
+    if percentage is not None:
+        path = path/('new' + str(percentage))
+
     tfms = get_transforms(do_flip=False)
-    if hyper_params['dataset'] == 'cifar10' : 
+    if dataset == 'cifar10' : 
         val = 'test'
         sz = 32
         stats = cifar_stats
 
-    return ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
+    return ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = batch_size, size = sz, ds_tfms = tfms).normalize(stats)

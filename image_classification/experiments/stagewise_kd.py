@@ -4,75 +4,62 @@ from comet_ml import Experiment
 from fastai.vision import *
 import torch
 import argparse
-from torchsummary import summary
-from core import SaveFeatures
-from utils import _get_accuracy
-from models.custom_resnet import *
-torch.cuda.set_device(0)
+import os
+from image_classification.arguments import get_args
+from image_classification.datasets.dataset import get_dataset
+from image_classification.utils.utils import _get_accuracy, SaveFeatures, get_model
+from image_classification.models.custom_resnet import *
 
-parser = argparse.ArgumentParser(description = 'Stagewise training of ResNet type model')
-parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
-parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
-parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
-parser.add_argument('-s', type = int, help = 'Give random seed')
-args = parser.parse_args()
+# parser = argparse.ArgumentParser(description = 'Stagewise training of ResNet type model')
+# parser.add_argument('-m', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
+# parser.add_argument('-d', choices = ['imagenette', 'imagewoof', 'cifar10'], help = 'Give the dataset name from the choices')
+# parser.add_argument('-e', type = int, help = 'Give number of epochs for training')
+# parser.add_argument('-s', type = int, help = 'Give random seed')
+# args = parser.parse_args()
 
-torch.manual_seed(args.s)
-torch.cuda.manual_seed(args.s)
+args = get_args(description='Stagewise KD', mode='train')
 
-val = 'val'
-sz = 224
-stats = imagenet_stats
-num_epochs = args.e
-batch_size = 64
-# dataset = 'imagenette'
-# model_name = 'resnet26'
-dataset = args.d
-model_name = args.m
-
-if dataset == 'imagenette' : 
-    path = untar_data(URLs.IMAGENETTE)
-elif dataset == 'cifar10' : 
-    path = untar_data(URLs.CIFAR)
-elif dataset == 'imagewoof' : 
-    path = untar_data(URLs.IMAGEWOOF)
+torch.manual_seed(args.seed)
+if args.gpu != 'cpu':
+    torch.cuda.set_device(args.gpu)
+    torch.cuda.manual_seed(args.seed)
 
 hyper_params = {
-    "dataset": dataset,
-    "model": model_name,
+    "dataset": args.dataset,
+    "model": args.model,
     "stage": 0,
     "num_classes": 10,
-    "batch_size": batch_size,
-    "num_epochs": num_epochs,
+    "batch_size": 64,
+    "num_epochs": args.epoch,
     "learning_rate": 1e-4,
-    "repeated": args.s
+    "seed": args.seed,
+    "percentage":args.percentage
 }
 
-tfms = get_transforms(do_flip=False)
-load_name = str(hyper_params['dataset'])
-if hyper_params['dataset'] == 'cifar10' : 
-    val = 'test'
-    sz = 32
-    stats = cifar_stats
-    load_name = str(hyper_params['dataset'])[ : -2]
+# load_name = str(hyper_params['dataset'])
+# if hyper_params['dataset'] == 'cifar10' : 
+#     load_name = str(hyper_params['dataset'])[ : -2]
 
-data = ImageDataBunch.from_folder(path, train = 'train', valid = val, bs = hyper_params["batch_size"], size = sz, ds_tfms = tfms).normalize(stats)
+data = get_dataset(dataset=hyper_params['dataset'],
+                   batch_size=hyper_params['batch_size'],
+                   percentage=args.percentage)
 
-learn = cnn_learner(data, models.resnet34, metrics = accuracy)
-learn = learn.load('resnet34_' + load_name + '_bs64')
-learn.freeze()
+# learn = cnn_learner(data, models.resnet34, metrics = accuracy, pretrained=False)
+# learn = learn.load(os.path.expanduser("~") + '/.fastai/data/' + str(hyper_params['dataset']) + '2/models/resnet34_' + load_name + '_bs64')
+# learn.freeze()
 
-if model_name == 'resnet10' :
-    net = resnet10(pretrained = False, progress = False)
-elif model_name == 'resnet14' : 
-    net = resnet14(pretrained = False, progress = False)
-elif model_name == 'resnet18' :
-    net = resnet18(pretrained = False, progress = False)
-elif model_name == 'resnet20' :
-    net = resnet20(pretrained = False, progress = False)
-elif model_name == 'resnet26' :
-    net = resnet26(pretrained = False, progress = False)
+# if hyper_params['model'] == 'resnet10' :
+#     net = resnet10(pretrained = False, progress = False)
+# elif model_name == 'resnet14' : 
+#     net = resnet14(pretrained = False, progress = False)
+# elif model_name == 'resnet18' :
+#     net = resnet18(pretrained = False, progress = False)
+# elif model_name == 'resnet20' :
+#     net = resnet20(pretrained = False, progress = False)
+# elif model_name == 'resnet26' :
+#     net = resnet26(pretrained = False, progress = False)
 
+learn, net = get_model(hyper_params['model'], hyper_params['dataset'], data, teach=True)
 
 for stage in range(5) :
     val = 'val'
@@ -85,17 +72,17 @@ for stage in range(5) :
     net.cpu()
     # no need to load model for 0th stage training
     if hyper_params['stage'] == 0 : 
-        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+        filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['seed']) + '.pt'
     # separate if conditions for stage 1 and others because of irregular naming convention
     # in the student model.
-    elif hyper_params['stage'] == 1 : 
-        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage0/model' + str(hyper_params['repeated']) + '.pt'
-        net.load_state_dict(torch.load(filename, map_location = 'cpu'))
+    # elif hyper_params['stage'] == 1 : 
+    #     filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage0/model' + str(hyper_params['seed']) + '.pt'
+    #     net.load_state_dict(torch.load(filename, map_location = 'cpu'))
     else : 
-        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
+        filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'] - 1) + '/model' + str(hyper_params['seed']) + '.pt'
         net.load_state_dict(torch.load(filename, map_location = 'cpu'))
     
-    if torch.cuda.is_available() : 
+    if args.gpu != 'cpu': 
         net = net.cuda()
 
     for name, param in net.named_parameters() : 
@@ -113,10 +100,11 @@ for stage in range(5) :
     project_name = 'kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
-    if hyper_params['stage'] == 0 : 
-        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage']) + '/model' + str(hyper_params['repeated']) + '.pt'
-    else : 
-        filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'] + 1) + '/model' + str(hyper_params['repeated']) + '.pt'
+    if hyper_params['stage'] == 0 :
+        filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'])
+        os.makedirs(filename, exist_ok=True)
+        filename = filename + '/model' + str(hyper_params['seed']) + '.pt'
+    
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     total_step = len(data.train_ds) // hyper_params["batch_size"]
     train_loss_list = list()
@@ -170,9 +158,9 @@ for stage in range(5) :
         val_loss = sum(val) / len(val)
         val_loss_list.append(val_loss)
         
-        if (epoch + 1) % 5 == 0 : 
-            print('repetition : ', hyper_params["repeated"], ' | stage : ', hyper_params["stage"])
-            print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
+        # if (epoch + 1) % 5 == 0 : 
+        #     print('repetition : ', hyper_params["seed"], ' | stage : ', hyper_params["stage"])
+        print('epoch : ', epoch + 1, ' / ', hyper_params["num_epochs"], ' | TL : ', round(train_loss, 6), ' | VL : ', round(val_loss, 6))
         
         experiment.log_metric("train_loss", train_loss)
         experiment.log_metric("val_loss", val_loss)
@@ -192,7 +180,7 @@ for stage in range(5) :
 #     "dataset": dataset,
 #     "model": model_name,
 #     "stage": 5,
-#     "repeated": repeated,
+#     "seed": seed,
 #     "num_classes": 10,
 #     "batch_size": batch_size,
 #     "num_epochs": num_epochs,
@@ -228,10 +216,10 @@ for stage in range(5) :
 hyper_params['stage'] = 5
 
 net.cpu()
-filename = '../saved_models/' + str(hyper_params['dataset']) + '/' + str(hyper_params['model']) + '_stage5/model' + str(repeated) + '.pt'
+filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage4/model' + str(hyper_params['seed']) + '.pt'
 net.load_state_dict(torch.load(filename, map_location = 'cpu'))
 
-if torch.cuda.is_available() : 
+if args.gpu != 'cpu' : 
     net = net.cuda()
 
 for name, param in net.named_parameters() : 
@@ -247,7 +235,7 @@ total_step = len(data.train_ds) // hyper_params["batch_size"]
 train_loss_list = list()
 val_loss_list = list()
 min_val = 0
-savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + hyper_params['model'] + '_classifier/model' + str(hyper_params['repeated']) + '.pt'
+savename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + hyper_params['model'] + '_classifier/model' + str(hyper_params['seed']) + '.pt'
 for epoch in range(hyper_params["num_epochs"]):
     trn = []
     net.train()

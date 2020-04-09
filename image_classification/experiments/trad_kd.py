@@ -4,9 +4,7 @@ from comet_ml import Experiment
 from fastai.vision import *
 import torch
 import argparse
-from torchsummary import summary
-from core import SaveFeatures
-from utils import _get_accuracy
+from utils import _get_accuracy, SaveFeatures
 from models.custom_resnet import *
 torch.cuda.set_device(0)
 
