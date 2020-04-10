@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch
 from fastai.vision import *
@@ -66,7 +67,7 @@ def get_model(model_name, dataset, data, teach=False):
         return net  
 
 
-def _get_accuracy(dataloader, Net):
+def get_accuracy(dataloader, Net):
     total = 0
     correct = 0
     Net.eval()
@@ -83,19 +84,10 @@ def _get_accuracy(dataloader, Net):
 
         _, pred_ind = torch.max(outputs, 1)
         
-        # converting to numpy arrays
-        labels = labels.data.cpu().numpy()
-        pred_ind = pred_ind.data.cpu().numpy()
-        
-        # get difference
-        diff_ind = labels - pred_ind
-        # correctly classified will be 1 and will get added
-        # incorrectly classified will be 0
-        correct += np.count_nonzero(diff_ind == 0)
-        total += len(diff_ind)
+        total += labels.size(0)
+        correct += (pred_ind == labels).sum().item()
 
-    accuracy = correct / total
-    return accuracy
+    return (correct / total)
 
 
 def check(model_name, dataset) :
