@@ -12,7 +12,7 @@ from image_classification.models.custom_resnet import *
 from trainer import *
 
 
-args = get_args(description='Simultaneous KD', mode='train')
+args = get_args(description='No Teacher', mode='train')
 
 torch.manual_seed(args.seed)
 if args.gpu != 'cpu':
@@ -36,38 +36,31 @@ data = get_dataset(dataset=hyper_params['dataset'],
                    batch_size=hyper_params['batch_size'],
                    percentage=args.percentage)
 
-learn, net = get_model(hyper_params['model'], hyper_params['dataset'], data, teach=True)
-learn.model, net = learn.model.to(args.gpu), net.to(args.gpu)
+net = get_model(hyper_params['model'], hyper_params['dataset'])
+net = net.to(args.gpu)
 
-# saving outputs of all Basic Blocks
-teacher = learn.model
-# for all 5 feature maps
-sf_teacher = [SaveFeatures(m) for m in [teacher[0][2], teacher[0][4], teacher[0][5], teacher[0][6], teacher[0][7]]]
-sf_student = [SaveFeatures(m) for m in [net.relu2, net.layer1, net.layer2, net.layer3, net.layer4]]
-
-project_name = 'simultaneous-kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
+project_name = 'no-teacher-' + hyper_params['model'] + '-' + hyper_params['dataset']
 experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name = project_name, workspace="akshaykvnit")
 experiment.log_parameters(hyper_params)
 
 optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
-loss_function2 = nn.MSELoss()
 loss_function = nn.CrossEntropyLoss()
-savename = get_savename(hyper_params, experiment='simultaneous-kd')
+savename = get_savename(hyper_params, experiment='no-teacher')
 best_val_acc = 0
 for epoch in range(hyper_params['num_epochs']):
     student, train_loss, val_loss, val_acc, best_val_acc = train(
                                                                 net,
-                                                                teacher,
-                                                                data,
-                                                                sf_teacher,
-                                                                sf_student,
-                                                                loss_function,
-                                                                loss_function2,
-                                                                optimizer,
-                                                                hyper_params,
-                                                                epoch,
-                                                                savename,
-                                                                best_val_acc
+                                                                teacher=None,
+                                                                data=data,
+                                                                sf_teacher=None,
+                                                                sf_student=None,
+                                                                loss_function=loss_function,
+                                                                loss_function2=None,
+                                                                optimizer=optimizer,
+                                                                hyper_params=hyper_params,
+                                                                epoch=epoch,
+                                                                savename=savename,
+                                                                best_val_acc=best_val_acc
                                                                 )
     experiment.log_metric("train_loss", train_loss)
     experiment.log_metric("val_loss", val_loss)

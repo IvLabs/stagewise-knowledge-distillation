@@ -12,7 +12,7 @@ from image_classification.models.custom_resnet import *
 from trainer import *
 
 
-args = get_args(description='Stagewise KD', mode='train')
+args = get_args(description='Traditional KD', mode='train')
 
 torch.manual_seed(args.seed)
 if args.gpu != 'cpu':
@@ -41,13 +41,13 @@ learn.model, net = learn.model.to(args.gpu), net.to(args.gpu)
 
 # saving outputs of all Basic Blocks
 teacher = learn.model
-sf = [SaveFeatures(m) for m in [teacher[0][2], teacher[0][4], teacher[0][5], teacher[0][6], teacher[0][7]]]
-sf2 = [SaveFeatures(m) for m in [net.relu2, net.layer1, net.layer2, net.layer3, net.layer4]]
+sf_teacher = [SaveFeatures(m) for m in [teacher[0][5]]]
+sf_student = [SaveFeatures(m) for m in [net.layer2]]
 
-for stage in range(6):
+for stage in range(2):
     if stage != 0:
         # load previous stage best weights
-        filename = get_savename(hyper_params, experiment='stagewise-kd')
+        filename = get_savename(hyper_params, experiment='traditional-kd')
         net.load_state_dict(torch.load(filename))
     
     hyper_params['stage'] = stage
@@ -56,24 +56,24 @@ for stage in range(6):
     print('stage :', hyper_params['stage'])
     print('-------------------------------')
     
-    net = freeze_student(net, hyper_params, experiment='stagewise-kd')
+    net = freeze_student(net, hyper_params, experiment='traditional-kd')
     
-    project_name = 'stagewise-kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
+    project_name = 'traditional-kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     
-    savename = get_savename(hyper_params, experiment='stagewise-kd')
+    savename = get_savename(hyper_params, experiment='traditional-kd')
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     
-    if hyper_params['stage'] != 5:
+    if hyper_params['stage'] != 1:
         loss_function = nn.MSELoss()
         best_val_loss = 100
         for epoch in range(hyper_params["num_epochs"]):
             net, train_loss, val_loss, _, best_val_loss = train(net, 
                                                                 teacher, 
                                                                 data, 
-                                                                sf, 
-                                                                sf2, 
+                                                                sf_teacher, 
+                                                                sf_student, 
                                                                 loss_function, 
                                                                 loss_function2=None, 
                                                                 optimizer=optimizer,
