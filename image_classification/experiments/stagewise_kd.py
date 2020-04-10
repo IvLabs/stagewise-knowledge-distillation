@@ -37,17 +37,15 @@ data = get_dataset(dataset=hyper_params['dataset'],
                    percentage=args.percentage)
 
 learn, net = get_model(hyper_params['model'], hyper_params['dataset'], data, teach=True)
+if args.gpu != 'cpu':
+    learn, net = learn.to(args.gpu), net.to(args.gpu)
 
-for stage in range(5) :
-    # stage should be in 0 to 5 (5 for classifier stage)
-    hyper_params['stage'] = stage
-    
+for stage in range(5):
     if hyper_params['stage'] != 0:
-        hyper_params['stage'] -= 1
-        # load previous stage weights
+        # load previous stage best weights
         filename = get_savename(hyper_params, experiment='stagewise-kd')
-        net.load_state_dict(torch.load(filename, map_location='cpu'))
-        hyper_params['stage'] += 1
+        net.load_state_dict(torch.load(filename))
+        hyper_params['stage'] = stage
     
     for name, param in net.named_parameters():
         param.requires_grad = False
@@ -86,15 +84,14 @@ for stage in range(5) :
         experiment.log_metric("train_loss", train_loss)
         experiment.log_metric("val_loss", val_loss)
 
+# loading previous stage best weights
+filename = get_savename(hyper_params, experiment='stagewise-kd')
+net.load_state_dict(torch.load(filename))
 hyper_params['stage'] = 5
 
-net.cpu()
-filename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + str(hyper_params['model']) + '_stage4/model' + str(hyper_params['seed']) + '.pt'
-net.load_state_dict(torch.load(filename, map_location = 'cpu'))
-
-for name, param in net.named_parameters() : 
+for name, param in net.named_parameters():
     param.requires_grad = False
-    if name[0] == 'f' :
+    if name[0] == 'f':
         param.requires_grad = True
     
 project_name = 'stagewise-kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
@@ -102,14 +99,14 @@ experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = proj
 experiment.log_parameters(hyper_params)
 
 optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
-savename = '../saved_models/' + str(hyper_params['dataset']) + '/stagewise/' + hyper_params['model'] + '_classifier/model' + str(hyper_params['seed']) + '.pt'
+savename = get_savename(hyper_params, experiment='stagewise-kd')
 loss_function = nn.CrossEntropyLoss()
 best_val_acc = 0
 
 for epoch in range(hyper_params['num_epochs']):
-    model, train_loss, val_loss, val_acc, best_val_acc = train(net,
-                                                               teacher=None
-                                                               data,
+    net, train_loss, val_loss, val_acc, best_val_acc = train(net,
+                                                               teacher=None,
+                                                               data=data,
                                                                sf_teacher=None,
                                                                sf_student=None,
                                                                loss_function=loss_function,
