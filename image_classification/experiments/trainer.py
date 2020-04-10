@@ -10,9 +10,9 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
     max_val_acc = best_val_acc
     gpu = hyper_params['gpu']
     student.train()
-    teacher.eval()
     student = student.to(gpu)
     if teacher is not None:
+        teacher.eval()
         teacher = teacher.to(gpu)
     trn = list()
     for images, labels in loop:

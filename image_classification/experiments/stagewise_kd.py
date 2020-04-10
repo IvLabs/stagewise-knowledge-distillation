@@ -38,15 +38,16 @@ data = get_dataset(dataset=hyper_params['dataset'],
 
 learn, net = get_model(hyper_params['model'], hyper_params['dataset'], data, teach=True)
 if args.gpu != 'cpu':
-    learn, net = learn.to(args.gpu), net.to(args.gpu)
+    learn.model, net = learn.model.to(args.gpu), net.to(args.gpu)
 
 for stage in range(5):
     if hyper_params['stage'] != 0:
         # load previous stage best weights
         filename = get_savename(hyper_params, experiment='stagewise-kd')
         net.load_state_dict(torch.load(filename))
-        hyper_params['stage'] = stage
     
+    hyper_params['stage'] = stage
+    print('stage :', hyper_params['stage'])
     for name, param in net.named_parameters():
         param.requires_grad = False
         if name[5] == str(hyper_params['stage']) and hyper_params['stage'] != 0:
