@@ -1,65 +1,47 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
-import matplotlib.pyplot as plt
+from comet_ml import Experiment
 from fastai.vision import *
 import torch
-from torchsummary import summary
-torch.cuda.set_device(1)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
+import argparse
+import os
+from image_classification.arguments import get_args
+from image_classification.datasets.dataset import get_dataset
+from image_classification.utils.utils import *
+from image_classification.models.custom_resnet import *
 
-from models.custom_resnet import *
-from utils import _get_accuracy
 
-def check_ldp(model_name, dataset, perc) :
-    if dataset == 'imagenette' : 
-        path = untar_data(URLs.IMAGENETTE)
-    elif dataset == 'cifar10' : 
-        path = untar_data(URLs.CIFAR)
-    elif dataset == 'imagewoof' : 
-        path = untar_data(URLs.IMAGEWOOF)
-    
-    new_path = path/('new' + str(perc))
-    val = 'val'
-    sz = 224
-    stats = imagenet_stats
+args = get_args(description='Evaluation Script', mode='eval')
 
-    tfms = get_transforms(do_flip=False)
-    load_name = dataset
-    if dataset == 'cifar10' : 
-        val = 'test'
-        sz = 32
-        stats = cifar_stats
-        load_name = dataset[ : -2]
+torch.manual_seed(args.seed)
+if args.gpu != 'cpu':
+    torch.cuda.set_device(args.gpu)
+    torch.cuda.manual_seed(args.seed)
 
-    data = ImageDataBunch.from_folder(new_path, train = 'train', valid = 'val', test = 'test', bs = 64, size = sz, ds_tfms = tfms).normalize(stats)
-    
-    if model_name == 'resnet10' :
-        net = resnet10(pretrained = False, progress = False)
-    elif model_name == 'resnet14' : 
-        net = resnet14(pretrained = False, progress = False)
-    elif model_name == 'resnet18' :
-        net = resnet18(pretrained = False, progress = False)
-    elif model_name == 'resnet20' :
-        net = resnet20(pretrained = False, progress = False)
-    elif model_name == 'resnet26' :
-        net = resnet26(pretrained = False, progress = False)
-    savename = '../saved_models/' + dataset + '/less_data' + str(perc) + '/' + model_name + '_classifier/model0.pt'
-    net.load_state_dict(torch.load(savename, map_location = 'cpu'))
-    net.cuda()
+hyper_params = {
+    "dataset": args.dataset,
+    "model": args.model,
+    "stage": 0,
+    "num_classes": 10,
+    "batch_size": 64,
+    "num_epochs": args.epoch,
+    "learning_rate": 1e-4,
+    "seed": args.seed,
+    "percentage":args.percentage,
+    "gpu": args.gpu,
+    "experiment": args.experiment
+}
 
-    ld_stagewise_acc = _get_accuracy(data.valid_dl, net)
-        
-    return ld_stagewise_acc
+data = get_dataset(dataset=hyper_params['dataset'],
+                   batch_size=hyper_params['batch_size'],
+                   percentage=args.percentage)
 
-# print(check_ldp('resnet10', 'imagenette', 20))
-# print(check_ldp('resnet14', 'imagenette', 20))
-# print(check_ldp('resnet18', 'imagenette', 20))
-# print(check_ldp('resnet20', 'imagenette', 20))
-# print(check_ldp('resnet26', 'imagenette', 20))
+model = get_model(hyper_params['model'], hyper_params['dataset'])
 
-print(check_ldp('resnet10', 'imagewoof', 20))
-print(check_ldp('resnet14', 'imagewoof', 20))
-print(check_ldp('resnet18', 'imagewoof', 20))
-print(check_ldp('resnet20', 'imagewoof', 20))
-print(check_ldp('resnet26', 'imagewoof', 20))
+savename = get_savename(hyper_params, experiment=hyper_params['experiment'])
+model.load_state_dict(torch.load(savename))
+
+if hyper_params['percentage'] is None:
+    print(f'{hyper_params['dataset']} - {hyper_params['model']} - Full Data - {get_accuracy(data.valid_dl, model)}')
+else:
+    print(f'{hyper_params['dataset']} - {hyper_params['model']} - {hyper_params['percentage']}% data - {get_accuracy(data.valid_dl, model)}')
