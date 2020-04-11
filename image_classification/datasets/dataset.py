@@ -5,11 +5,11 @@ def get_dataset(dataset, batch_size, percentage=None):
     sz = 224
     stats = imagenet_stats
     if dataset == 'imagenette' : 
-        path = untar_data(URLs.IMAGENETTE)
+        path = untar_data('https://s3.amazonaws.com/fast-ai-imageclas/imagenette')
     elif dataset == 'cifar10' : 
         path = untar_data(URLs.CIFAR)
     elif dataset == 'imagewoof' : 
-        path = untar_data(URLs.IMAGEWOOF)
+        path = untar_data('https://s3.amazonaws.com/fast-ai-imageclas/imagewoof')
     else:
         sys.exit(f'invalid dataset : {dataset}')
     

@@ -13,9 +13,11 @@ from trainer import *
 
 
 args = get_args(description='No Teacher', mode='train')
+expt = 'no-teacher'
 
 torch.manual_seed(args.seed)
 if args.gpu != 'cpu':
+    args.gpu = int(args.gpu)
     torch.cuda.set_device(args.gpu)
     torch.cuda.manual_seed(args.seed)
 
@@ -39,13 +41,13 @@ data = get_dataset(dataset=hyper_params['dataset'],
 net = get_model(hyper_params['model'], hyper_params['dataset'])
 net = net.to(args.gpu)
 
-project_name = 'no-teacher-' + hyper_params['model'] + '-' + hyper_params['dataset']
+project_name = expt + '-' + hyper_params['model'] + '-' + hyper_params['dataset']
 experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
 experiment.log_parameters(hyper_params)
 
 optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
 loss_function = nn.CrossEntropyLoss()
-savename = get_savename(hyper_params, experiment='no-teacher')
+savename = get_savename(hyper_params, experiment=expt)
 best_val_acc = 0
 for epoch in range(hyper_params['num_epochs']):
     student, train_loss, val_loss, val_acc, best_val_acc = train(

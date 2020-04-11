@@ -18,9 +18,9 @@ random.seed(args.seed)
 if args.dataset == 'imagenette' or args.dataset == 'imagewoof' :
     NUM_ = int(args.percentage * 13)
     if args.dataset == 'imagenette' :
-        data = untar_data(URLs.IMAGENETTE)
+        data = untar_data('https://s3.amazonaws.com/fast-ai-imageclas/imagenette')
     else :
-        data = untar_data(URLs.IMAGEWOOF)
+        data = untar_data('https://s3.amazonaws.com/fast-ai-imageclas/imagewoof')
 elif args.dataset == 'cifar10' :
     NUM_ = int(args.percentage * 50)
     data = untar_data(URLs.CIFAR)

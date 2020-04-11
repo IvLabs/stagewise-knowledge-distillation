@@ -13,9 +13,11 @@ from trainer import *
 
 
 args = get_args(description='Traditional KD', mode='train')
+expt = 'traditional-kd'
 
 torch.manual_seed(args.seed)
 if args.gpu != 'cpu':
+    args.gpu = int(args.gpu)
     torch.cuda.set_device(args.gpu)
     torch.cuda.manual_seed(args.seed)
 
@@ -39,15 +41,14 @@ data = get_dataset(dataset=hyper_params['dataset'],
 learn, net = get_model(hyper_params['model'], hyper_params['dataset'], data, teach=True)
 learn.model, net = learn.model.to(args.gpu), net.to(args.gpu)
 
-# saving outputs of all Basic Blocks
 teacher = learn.model
-sf_teacher = [SaveFeatures(m) for m in [teacher[0][5]]]
-sf_student = [SaveFeatures(m) for m in [net.layer2]]
+
+sf_student, sf_teacher = get_features(net, teacher, experiment=expt)
 
 for stage in range(2):
     if stage != 0:
         # load previous stage best weights
-        filename = get_savename(hyper_params, experiment='traditional-kd')
+        filename = get_savename(hyper_params, experiment=expt)
         net.load_state_dict(torch.load(filename))
     
     hyper_params['stage'] = stage
@@ -56,13 +57,13 @@ for stage in range(2):
     print('stage :', hyper_params['stage'])
     print('-------------------------------')
     
-    net = freeze_student(net, hyper_params, experiment='traditional-kd')
+    net = freeze_student(net, hyper_params, experiment=expt)
     
-    project_name = 'traditional-kd-' + hyper_params['model'] + '-' + hyper_params['dataset']
+    project_name = expt + '-' + hyper_params['model'] + '-' + hyper_params['dataset']
     experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
     experiment.log_parameters(hyper_params)
     
-    savename = get_savename(hyper_params, experiment='traditional-kd')
+    savename = get_savename(hyper_params, experiment=expt)
     optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
     
     if hyper_params['stage'] != 1:

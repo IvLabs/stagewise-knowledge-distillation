@@ -2,7 +2,7 @@ import os
 import numpy as np
 import torch
 from fastai.vision import *
-from image_classification.models.custom_resnet import *
+from image_classification.models import custom_resnet
 
 
 class SaveFeatures:
@@ -12,6 +12,16 @@ class SaveFeatures:
         self.features = outp
     def remove(self):
         self.handle.remove()
+
+
+def get_features(student, teacher, experiment):
+    if experiment == 'stagewise-kd' or experiment == 'simultaneous-kd':
+        sf_teacher = [SaveFeatures(m) for m in [teacher[0][2], teacher[0][4], teacher[0][5], teacher[0][6], teacher[0][7]]]
+        sf_student = [SaveFeatures(m) for m in [student.relu2, student.layer1, student.layer2, student.layer3, student.layer4]]
+    elif experiment == 'traditional-kd':
+        sf_teacher = [SaveFeatures(m) for m in [teacher[0][5]]]
+        sf_student = [SaveFeatures(m) for m in [student.layer2]]
+    return sf_student, sf_teacher
 
 
 def freeze_student(model, hyper_params, experiment):
@@ -73,24 +83,11 @@ def get_model(model_name, dataset, data=None, teach=False):
         load_name = dataset
         if dataset == 'cifar10' : 
             load_name = dataset[ : -2]
-        else:
-            load_name = dataset + '2'
         teacher = cnn_learner(data, models.resnet34, metrics=accuracy, pretrained=False)
         teacher = teacher.load(os.path.expanduser("~") + '/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
         teacher.freeze()
 
-    if model_name == 'resnet10' :
-        net = resnet10(pretrained=False, progress=False)
-    elif model_name == 'resnet14' : 
-        net = resnet14(pretrained=False, progress=False)
-    elif model_name == 'resnet18' :
-        net = resnet18(pretrained=False, progress=False)
-    elif model_name == 'resnet20' :
-        net = resnet20(pretrained=False, progress=False)
-    elif model_name == 'resnet26' :
-        net = resnet26(pretrained=False, progress=False)
-    elif model_name == 'resnet34' :
-        net = resnet34(pretrained=False, progress=False)
+    net =  getattr(custom_resnet, model_name)(pretrained=False, progress=False)
 
     if teach:
         return teacher, net
