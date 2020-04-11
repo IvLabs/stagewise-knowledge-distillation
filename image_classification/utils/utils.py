@@ -95,10 +95,10 @@ def get_model(model_name, dataset, data=None, teach=False):
         return net
 
 
-def get_accuracy(dataloader, Net):
+def get_accuracy(dataloader, net):
     total = 0
     correct = 0
-    Net.eval()
+    net.eval()
     for i, (images, labels) in enumerate(dataloader):
         images = torch.autograd.Variable(images).float()
         labels = torch.autograd.Variable(labels).float()
@@ -107,7 +107,7 @@ def get_accuracy(dataloader, Net):
             images = images.cuda()
             labels = labels.cuda()
 
-        outputs = Net.forward(images)
+        outputs = net.forward(images)
         outputs = F.log_softmax(outputs, dim = 1)
 
         _, pred_ind = torch.max(outputs, 1)
