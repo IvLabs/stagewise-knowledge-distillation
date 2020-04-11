@@ -40,7 +40,7 @@ net = get_model(hyper_params['model'], hyper_params['dataset'])
 net = net.to(args.gpu)
 
 project_name = 'no-teacher-' + hyper_params['model'] + '-' + hyper_params['dataset']
-experiment = Experiment(api_key="IOZ5docSriEdGRdQmdXQn9kpu", project_name = project_name, workspace="akshaykvnit")
+experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
 experiment.log_parameters(hyper_params)
 
 optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
