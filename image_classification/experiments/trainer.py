@@ -38,6 +38,8 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
             loss = loss_function(y_pred, labels)
             for k in range(5):
                 loss += loss_function2(sf_student[k].features, sf_teacher[k].features)
+            # normalizing factor (doesn't affect optimization theoretically)
+            loss /= 6
 
         trn.append(loss.item())
 
