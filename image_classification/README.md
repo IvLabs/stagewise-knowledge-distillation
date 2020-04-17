@@ -10,5 +10,5 @@ pip install -e .
 - Download datasets, create smaller datasets and download pretrained weights
 ```
 cd image_classification/scripts
-bash create_dataset.sh
+bash setup.sh
 ```
