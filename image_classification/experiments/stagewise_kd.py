@@ -70,13 +70,13 @@ for stage in range(6):
         loss_function = nn.MSELoss()
         best_val_loss = 100
         for epoch in range(hyper_params["num_epochs"]):
-            net, train_loss, val_loss, _, best_val_loss = train(net, 
-                                                                teacher, 
-                                                                data, 
-                                                                sf, 
-                                                                sf2, 
-                                                                loss_function, 
-                                                                loss_function2=None, 
+            net, train_loss, val_loss, _, best_val_loss = train(net,
+                                                                teacher,
+                                                                data,
+                                                                sf_teacher,
+                                                                sf_student,
+                                                                loss_function,
+                                                                loss_function2=None,
                                                                 optimizer=optimizer,
                                                                 hyper_params=hyper_params,
                                                                 epoch=epoch,
