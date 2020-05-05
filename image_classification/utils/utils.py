@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from fastai.vision import *
 from image_classification.models import custom_resnet
+from pathlib import Path
 
 
 class SaveFeatures:
@@ -56,26 +57,30 @@ def freeze_student(model, hyper_params, experiment):
     return model
 
 
-def get_savename(hyper_params, experiment):
+def getsavename(hyper_params, experiment):
     assert experiment in ['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'no-teacher']
-    less = 'full_data'
-    if hyper_params['percentage'] is not None:
-        less = 'less_data' + str(hyper_params['percentage'])
 
-    if experiment == 'stagewise-kd':
-        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/stagewise-kd/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'])
-    
-    elif experiment == 'traditional-kd':
-        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/traditional-kd/' + str(hyper_params['model']) + '_stage' + str(hyper_params['stage'])
+    dsize = 'full_data' if hyper_params['percentage'] is None else f"less_data_{str(hyper_params['percentage'])}"
 
-    elif experiment == 'simultaneous-kd':
-        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/simultaneous-kd/' + str(hyper_params['model'])
-        
-    elif experiment == 'no-teacher':
-        savename = '../saved_models/' + str(hyper_params['dataset']) + '/' + less + '/no-teacher/' + str(hyper_params['model']) + '_classifier'
-    
+    if experiment in ['stagewise-kd', 'traditional-kd']:
+        stage = f"_stage{str(hyper_params['stage'])}"
+    elif experiment == "no-teacher":
+        stage = f"_classifier"
+    else:
+        stage = ""
+
+    realpath = Path(os.path.dirname(os.path.realpath(__file__)))
+    current_path = Path(os.getcwd())
+    parent = realpath.relative_to(current_path)
+
+    if str(parent) == '.': new = '../'
+    else:
+        new = '/'.join(str(parent).split('/')[:-1])
+        new = '' if new == '' else new + '/'
+
+    savename = f"{new}{hyper_params['dataset']}/{dsize}/{experiment}/{hyper_params['model']}{stage}"
     os.makedirs(savename, exist_ok=True)
-    return savename + '/model' + str(hyper_params['seed']) + '.pt'
+    return f"{savename}/model-{str(hyper_params['seed'])}.pt"
 
 
 def get_model(model_name, dataset, data=None, teach=False):
