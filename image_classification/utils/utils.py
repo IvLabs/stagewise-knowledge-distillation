@@ -43,24 +43,24 @@ def freeze_student(model, hyper_params, experiment):
                 param.requires_grad = True
     # traditional-kd first stage
     elif experiment == 'traditional-kd' and hyper_params['stage'] == 0:
-        for name, param in model.named_parameters() : 
+        for name, param in model.named_parameters() :
             param.requires_grad = False
-            if (name[0] == 'b' or name[0] == 'c' or name[5] == str(0) or name[5] == str(1) or name[5] == str(2)) : 
+            if (name[0] == 'b' or name[0] == 'c' or name[5] == str(0) or name[5] == str(1) or name[5] == str(2)) :
                 param.requires_grad = True
     # traditional-kd last stage
     elif experiment == 'traditional-kd' and hyper_params['stage'] == 1:
-        for name, param in model.named_parameters() : 
+        for name, param in model.named_parameters() :
             param.requires_grad = False
-            if not (name[0] == 'b' or name[0] == 'c' or name[5] == str(0) or name[5] == str(1) or name[5] == str(2)) : 
+            if not (name[0] == 'b' or name[0] == 'c' or name[5] == str(0) or name[5] == str(1) or name[5] == str(2)) :
                 param.requires_grad = True
 
     return model
 
 
-def getsavename(hyper_params, experiment):
+def get_savename(hyper_params, experiment):
     assert experiment in ['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'no-teacher']
 
-    dsize = 'full_data' if hyper_params['percentage'] is None else f"less_data_{str(hyper_params['percentage'])}"
+    dsize = 'full_data' if hyper_params['percentage'] is None else f"less_data{str(hyper_params['percentage'])}"
 
     if experiment in ['stagewise-kd', 'traditional-kd']:
         stage = f"_stage{str(hyper_params['stage'])}"
@@ -73,20 +73,21 @@ def getsavename(hyper_params, experiment):
     current_path = Path(os.getcwd())
     parent = realpath.relative_to(current_path)
 
-    if str(parent) == '.': new = '../'
+    if str(parent) == '.':
+        new = '../'
     else:
         new = '/'.join(str(parent).split('/')[:-1])
         new = '' if new == '' else new + '/'
 
-    savename = f"{new}{hyper_params['dataset']}/{dsize}/{experiment}/{hyper_params['model']}{stage}"
+    savename = f"{new}saved_models/{hyper_params['dataset']}/{dsize}/{experiment}/{hyper_params['model']}{stage}"
     os.makedirs(savename, exist_ok=True)
-    return f"{savename}/model-{str(hyper_params['seed'])}.pt"
+    return f"{savename}/model{str(hyper_params['seed'])}.pt"
 
 
 def get_model(model_name, dataset, data=None, teach=False):
     if teach and data:
         load_name = dataset
-        if dataset == 'cifar10' : 
+        if dataset == 'cifar10' :
             load_name = dataset[ : -2]
         teacher = cnn_learner(data, models.resnet34, metrics=accuracy, pretrained=False)
         teacher = teacher.load(os.path.expanduser("~") + '/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
@@ -107,8 +108,8 @@ def get_accuracy(dataloader, net):
     for i, (images, labels) in enumerate(dataloader):
         images = torch.autograd.Variable(images).float()
         labels = torch.autograd.Variable(labels).float()
-        
-        if torch.cuda.is_available() : 
+
+        if torch.cuda.is_available() :
             images = images.cuda()
             labels = labels.cuda()
 
@@ -116,7 +117,7 @@ def get_accuracy(dataloader, net):
         outputs = F.log_softmax(outputs, dim = 1)
 
         _, pred_ind = torch.max(outputs, 1)
-        
+
         total += labels.size(0)
         correct += (pred_ind == labels).sum().item()
 
