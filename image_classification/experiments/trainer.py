@@ -5,7 +5,7 @@ from fastai.vision import *
 
 from image_classification.utils.utils import *
 
-def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_function2, optimizer, hyper_params, epoch, savename, best_val_acc):
+def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_function2, optimizer, hyper_params, epoch, savename, best_val_acc, expt=None):
     loop = tqdm(data.train_dl)
     max_val_acc = best_val_acc
     gpu = hyper_params['gpu']
@@ -32,7 +32,15 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
             loss = loss_function(y_pred, labels)
         # stage training (and assuming sf_teacher and sf_student are given)
         elif loss_function2 is None:
-            loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
+            if expt == 'fsp-kd':
+                loss = 0
+                # 4 intermediate feature maps and taken 2 at a time (thus 3)
+                for k in range(3):
+                    loss += loss_function(fsp_matrix(sf_teacher[k].features, sf_teacher[k + 1].features),
+                                          fsp_matrix(sf_student[k].features, sf_student[k + 1].features))
+                loss /= 3
+            else:
+                loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
         # 2 loss functions and student and teacher are given -> simultaneous training
         else:
             loss = loss_function(y_pred, labels)
@@ -64,41 +72,49 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
             else:
                 images = torch.autograd.Variable(images).float()
                 labels = torch.autograd.Variable(labels)
-            
+
             y_pred = student(images)
             if teacher is not None:
                 _ = teacher(images)
-            
+
             # classifier training
             if teacher is None:
                 loss = loss_function(y_pred, labels)
                 y_pred = F.log_softmax(y_pred, dim = 1)
 
                 _, pred_ind = torch.max(y_pred, 1)
-                
+
                 total += labels.size(0)
                 correct += (pred_ind == labels).sum().item()
             # stage training
             elif loss_function2 is None:
-                loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
+                if expt == 'fsp-kd':
+                    loss = 0
+                    # 4 intermediate feature maps and taken 2 at a time (thus 3)
+                    for k in range(3):
+                        loss += loss_function(fsp_matrix(sf_teacher[k].features, sf_teacher[k + 1].features),
+                                              fsp_matrix(sf_student[k].features, sf_student[k + 1].features))
+                    loss /= 3
+                else:
+                    loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
             # simultaneous training
             else:
                 loss = loss_function(y_pred, labels)
                 y_pred = F.log_softmax(y_pred, dim = 1)
 
                 _, pred_ind = torch.max(y_pred, 1)
-                
+
                 total += labels.size(0)
                 correct += (pred_ind == labels).sum().item()
 
             val.append(loss.item())
-    
+
     val_loss = (sum(val) / len(val))
     if total > 0:
         val_acc = correct / total
     else:
         val_acc = None
-    
+
     # classifier training
     if teacher is None:
         if (val_acc * 100) > max_val_acc :
