@@ -144,11 +144,11 @@ Code Source : https://github.com/AberHu/Knowledge-Distillation-Zoo/blob/master/k
 '''
 def fsp_matrix(fm1, fm2):
     if fm1.size(2) > fm2.size(2):
-			fm1 = F.adaptive_avg_pool2d(fm1, (fm2.size(2), fm2.size(3)))
+        fm1 = F.adaptive_avg_pool2d(fm1, (fm2.size(2), fm2.size(3)))
 
-		fm1 = fm1.view(fm1.size(0), fm1.size(1), -1)
-		fm2 = fm2.view(fm2.size(0), fm2.size(1), -1).transpose(1,2)
+    fm1 = fm1.view(fm1.size(0), fm1.size(1), -1)
+    fm2 = fm2.view(fm2.size(0), fm2.size(1), -1).transpose(1,2)
 
-		fsp = torch.bmm(fm1, fm2) / fm1.size(2)
+    fsp = torch.bmm(fm1, fm2) / fm1.size(2)
 
-		return fsp
+    return fsp
