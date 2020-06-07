@@ -41,6 +41,12 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
                 loss /= 3
             else:
                 loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
+        # attention transfer KD
+        elif expt == 'attention-kd':
+            loss = loss_function(y_pred, labels)
+            for k in range(4):
+                loss += loss_function2(at(sf_student[k].features), at(sf_teacher[k].features))
+            loss /= 5
         # 2 loss functions and student and teacher are given -> simultaneous training
         else:
             loss = loss_function(y_pred, labels)
@@ -97,7 +103,7 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
                     loss /= 3
                 else:
                     loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
-            # simultaneous training
+            # simultaneous training or attention KD
             else:
                 loss = loss_function(y_pred, labels)
                 y_pred = F.log_softmax(y_pred, dim = 1)
@@ -127,7 +133,7 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
             print(f'lower valid loss obtained: {val_loss}')
             max_val_acc = val_loss
             torch.save(student.state_dict(), savename)
-    # simultaneous training
+    # simultaneous training or attention kd
     else:
         if (val_acc * 100) > max_val_acc :
             print(f'higher valid acc obtained: {val_acc * 100}')
