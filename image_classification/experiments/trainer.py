@@ -32,7 +32,15 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
             loss = loss_function(y_pred, labels)
         # stage training (and assuming sf_teacher and sf_student are given)
         elif loss_function2 is None:
-            loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
+            if expt == 'fsp-kd':
+                loss = 0
+                # 4 intermediate feature maps and taken 2 at a time (thus 3)
+                for k in range(3):
+                    loss += loss_function(fsp_matrix(sf_teacher[k].features, sf_teacher[k + 1].features),
+                                          fsp_matrix(sf_student[k].features, sf_student[k + 1].features))
+                loss /= 3
+            else:
+                loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
         # attention transfer KD
         elif expt == 'attention-kd':
             loss = loss_function(y_pred, labels)
@@ -86,7 +94,15 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
                 correct += (pred_ind == labels).sum().item()
             # stage training
             elif loss_function2 is None:
-                loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
+                if expt == 'fsp-kd':
+                    loss = 0
+                    # 4 intermediate feature maps and taken 2 at a time (thus 3)
+                    for k in range(3):
+                        loss += loss_function(fsp_matrix(sf_teacher[k].features, sf_teacher[k + 1].features),
+                                              fsp_matrix(sf_student[k].features, sf_student[k + 1].features))
+                    loss /= 3
+                else:
+                    loss = loss_function(sf_student[hyper_params['stage']].features, sf_teacher[hyper_params['stage']].features)
             # simultaneous training or attention KD
             else:
                 loss = loss_function(y_pred, labels)
