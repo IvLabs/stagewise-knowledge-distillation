@@ -22,6 +22,9 @@ def get_features(student, teacher, experiment):
     elif experiment == 'traditional-kd':
         sf_teacher = [SaveFeatures(m) for m in [teacher[0][5]]]
         sf_student = [SaveFeatures(m) for m in [student.layer2]]
+    elif experiment == 'attention-kd':
+        sf_teacher = [SaveFeatures(m) for m in [teacher[0][4], teacher[0][5], teacher[0][6], teacher[0][7]]]
+        sf_student = [SaveFeatures(m) for m in [student.layer1, student.layer2, student.layer3, student.layer4]]
     return sf_student, sf_teacher
 
 
@@ -58,7 +61,7 @@ def freeze_student(model, hyper_params, experiment):
 
 
 def get_savename(hyper_params, experiment):
-    assert experiment in ['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'no-teacher']
+    assert experiment in ['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'attention-kd', 'no-teacher']
 
     dsize = 'full_data' if hyper_params['percentage'] is None else f"less_data{str(hyper_params['percentage'])}"
 
@@ -122,3 +125,7 @@ def get_accuracy(dataloader, net):
         correct += (pred_ind == labels).sum().item()
 
     return (correct / total)
+
+
+def at(x):
+    return F.normalize(x.pow(2).mean(1).view(x.size(0), -1))
