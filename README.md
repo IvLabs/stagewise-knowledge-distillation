@@ -24,7 +24,9 @@ Note: A new version of this paper based on semantic segmentation and image class
     - [Experiments](#experiments-1)
       - [No Teacher](#no-teacher-1)
       - [Traditional KD (FitNets)](#traditional-kd-fitnets-1)
-      - [Attention Transfer KD](#attention-transfer-kd-1)
+      - [Simultaneous KD (Proposed Method)](#simultaneous-kd-proposed-method-1)
+      - [Stagewise KD (Proposed Method)](#stagewise-kd-proposed-method-1)
+  - [Citation](#citation)
 
 
 This repository presents the code implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786), a technique for improving knowledge transfer between a teacher model and student model.
@@ -144,18 +146,6 @@ python3 pretrain.py -d camvid -m resnet10 -e 100 -s 0
 ```
 python3 traditional_kd.py -d camvid -m resnet18 -p 20 -e 100 -s 0
 ```
-
-<!-- #### [FSP KD](https://ieeexplore.ieee.org/document/8100237)
-30% CIFAR10 dataset, ResNet14
-```
-python3 fsp_kd.py -d cifar10 -m resnet14 -p 30 -e 100 -s 0
-```
-
-#### [Attention Transfer KD](https://openreview.net/forum?id=Sks9_ajex)
-10% Imagewoof dataset, ResNet26
-```
-python3 attention_transfer_kd.py -d imagewoof -m resnet26 -p 10 -e 100 -s 0
-``` -->
 
 #### Simultaneous KD (Proposed Method)
 40% CamVid dataset, ResNet20
