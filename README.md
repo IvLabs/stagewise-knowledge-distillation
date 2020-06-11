@@ -60,8 +60,6 @@ In this work, [ResNet](https://arxiv.org/abs/1512.03385) architectures are used.
     bash setup.sh
     ```
 
-- CIFAR10 saved weights are not uploaded yet. They will be added to the script soon.
-
 ### Experiments
 For detailed information on the various experiments, refer to the paper. In all the image classification experiments, the following common training arguments are listed with the possible values they can take:
 - dataset (`-d`) : imagenette, imagewoof, cifar10
@@ -70,8 +68,6 @@ For detailed information on the various experiments, refer to the paper. In all 
 - percentage of dataset (`-p`) : 10, 20, 30, 40 (don't use this argument at all for full dataset experiments)
 - random seed (`-s`) : Give any random seed (for reproducibility purposes)
 - gpu (`-g`) : Don't use unless training on CPU (in which case, use `-g 'cpu'` as the argument). In case of multi-GPU systems, run `CUDA_VISIBLE_DEVICES=id` in the terminal before the experiment, where `id` is the number of your GPU according to `nvidia-smi` output.
-
-Note: Attention Transfer KD and FSP KD experiments for semantic segmentation will be added soon.
 
 In the following subsections, example commands for training are given for one experiment each.
 #### No Teacher
@@ -133,6 +129,8 @@ For detailed information on the various experiments, refer to the paper. In all 
 - percentage of dataset (`-p`) : 10, 20, 30, 40 (don't use this argument at all for full dataset experiments)
 - random seed (`-s`) : Give any random seed (for reproducibility purposes)
 - gpu (`-g`) : Don't use unless training on CPU (in which case, use `-g 'cpu'` as the argument). In case of multi-GPU systems, run `CUDA_VISIBLE_DEVICES=id` in the terminal before the experiment, where `id` is the number of your GPU according to `nvidia-smi` output.
+
+Note: Attention Transfer KD and FSP KD experiments for semantic segmentation will be added soon.
 
 In the following subsections, example commands for training are given for one experiment each.
 #### No Teacher
