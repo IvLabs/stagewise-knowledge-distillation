@@ -15,7 +15,7 @@ def get_args(description, mode='train'):
         parser.add_argument('-m', '--model', choices = ['resnet10', 'resnet14', 'resnet18', 'resnet20', 'resnet26'], help = 'Give the model name from the choices')
         parser.add_argument('-g', '--gpu', choices=[0, 1, 'cpu'], help='which GPU (or CPU) to be used for training', default=0)
         parser.add_argument('-p', '--percentage', type=int, help='Percentage of dataset to be used for training', default=None)
-        parser.add_argument('-e', '--experiment', choices=['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'no-teacher'])
+        parser.add_argument('-e', '--experiment', choices=['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'no-teacher', 'fsp-kd', 'attention-kd'])
 
     elif mode == 'data':
         parser.add_argument('-p', '--percentage', type=int, help='Give percentage of dataset')
