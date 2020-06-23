@@ -25,6 +25,6 @@ wget https://www.dropbox.com/s/9xoj7d4qrlf94pc/resnet34_imagewoof_bs64.pth
 
 mkdir -p ~/.fastai/data/cifar10/models
 cd ~/.fastai/data/cifar10/models
-wget https://www.dropbox.com/s/qgay9te38hkimbb/resnet34_cifar10_bs64.pth
+wget https://www.dropbox.com/s/y1r3xaq75lpgze1/resnet34_cifar10_bs64.pth
 
 cd ~

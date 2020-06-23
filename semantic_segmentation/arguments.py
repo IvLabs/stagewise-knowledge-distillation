@@ -12,6 +12,8 @@ def get_args(desc="No Desc", mode='train'):
         parser.add_argument('-s', '--seed', type=int, help='Give the random seed number')
         parser.add_argument('-p', '--percentage', type=int, help='Percentage of dataset to be used for training', default=None)
         parser.add_argument('-g', '--gpu', choices=[0, 1, 'cpu'], help='which gpu (or cpu)', default=0)
+        parser.add_argument('-a', '--api_key', type=str, help='Comet ML API key', default=None)
+        parser.add_argument('-w', '--workspace', type=str, help='Comet ML workspace name or ID', default=None)
         args = parser.parse_args()
 
     elif mode == 'eval':

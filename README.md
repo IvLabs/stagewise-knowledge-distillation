@@ -7,7 +7,7 @@ Note: A new version of this paper based on semantic segmentation and image class
 ## Table of Contents
 - [Data Efficient Stagewise Knowledge Distillation](#data-efficient-stagewise-knowledge-distillation)
   - [Table of Contents](#table-of-contents)
-  - [Dependencies](#dependencies)
+  - [Requirements](#requirements)
   - [Image Classification](#image-classification)
     - [Introduction](#introduction)
     - [Preparation](#preparation)
@@ -28,20 +28,18 @@ Note: A new version of this paper based on semantic segmentation and image class
       - [Stagewise KD (Proposed Method)](#stagewise-kd-proposed-method-1)
   - [Citation](#citation)
 
-
 This repository presents the code implementation for [Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786), a technique for improving knowledge transfer between a teacher model and student model.
 
-## Dependencies
+## Requirements
 - Install the dependencies using `conda` with the `requirements.yml` file
     ```
     conda env create -f environment.yml
     ```
-- `requirements.txt` file for pip will be added soon.
 - Setup the `stagewise-knowledge-distillation` package itself
-
     ```
     pip install -e .
     ```
+- Apart from the above mentioned dependencies, it is recommended to have an Nvidia GPU (CUDA compatible) with at least 8 GB of video memory (most of the experiments will work with 6 GB also). However, the code works with CPU only machines as well.
 
 ## Image Classification
 ### Introduction
@@ -67,7 +65,9 @@ For detailed information on the various experiments, refer to the paper. In all 
 - number of epochs (`-e`) : Integer is required
 - percentage of dataset (`-p`) : 10, 20, 30, 40 (don't use this argument at all for full dataset experiments)
 - random seed (`-s`) : Give any random seed (for reproducibility purposes)
-- gpu (`-g`) : Don't use unless training on CPU (in which case, use `-g 'cpu'` as the argument). In case of multi-GPU systems, run `CUDA_VISIBLE_DEVICES=id` in the terminal before the experiment, where `id` is the number of your GPU according to `nvidia-smi` output.
+- gpu (`-g`) : Don't use unless training on CPU (in which case, use `-g 'cpu'` as the argument). In case of multi-GPU systems, run `CUDA_VISIBLE_DEVICES=id` in the terminal before the experiment, where `id` is the ID of your GPU according to `nvidia-smi` output.
+- Comet ML API key (`-a`) *(optional)* : If you want to use [Comet ML](https://www.comet.ml) for tracking your experiments, then either put your API key as the argument or make it the default argument in the `arguments.py` file. Otherwise, no need of using this argument.
+- Comet ML workspace (`-w`) *(optional)* : If you want to use [Comet ML](https://www.comet.ml) for tracking your experiments, then either put your workspace name as the argument or make it the default argument in the `arguments.py` file. Otherwise, no need of using this argument.
 
 In the following subsections, example commands for training are given for one experiment each.
 #### No Teacher
@@ -128,9 +128,11 @@ For detailed information on the various experiments, refer to the paper. In all 
 - number of epochs (`-e`) : Integer is required
 - percentage of dataset (`-p`) : 10, 20, 30, 40 (don't use this argument at all for full dataset experiments)
 - random seed (`-s`) : Give any random seed (for reproducibility purposes)
-- gpu (`-g`) : Don't use unless training on CPU (in which case, use `-g 'cpu'` as the argument). In case of multi-GPU systems, run `CUDA_VISIBLE_DEVICES=id` in the terminal before the experiment, where `id` is the number of your GPU according to `nvidia-smi` output.
+- gpu (`-g`) : Don't use unless training on CPU (in which case, use `-g 'cpu'` as the argument). In case of multi-GPU systems, run `CUDA_VISIBLE_DEVICES=id` in the terminal before the experiment, where `id` is the ID of your GPU according to `nvidia-smi` output.
+- Comet ML API key (`-a`) *(optional)* : If you want to use [Comet ML](https://www.comet.ml) for tracking your experiments, then either put your API key as the argument or make it the default argument in the `arguments.py` file. Otherwise, no need of using this argument.
+- Comet ML workspace (`-w`) *(optional)* : If you want to use [Comet ML](https://www.comet.ml) for tracking your experiments, then either put your workspace name as the argument or make it the default argument in the `arguments.py` file. Otherwise, no need of using this argument.
 
-Note: Attention Transfer KD and FSP KD experiments for semantic segmentation will be added soon.
+Note: Currently, there are no plans for adding Attention Transfer KD and FSP KD experiments for semantic segmentation.
 
 In the following subsections, example commands for training are given for one experiment each.
 #### No Teacher
