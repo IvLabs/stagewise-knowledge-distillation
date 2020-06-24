@@ -1,7 +1,5 @@
 # [Data Efficient Stagewise Knowledge Distillation](https://arxiv.org/abs/1911.06786)
 
-Note: A new version of this paper based on semantic segmentation and image classification results will be released soon. The previous version described only the image classification results.
-
 ![Stagewise Training Procedure](/image_classification/figures/training_proc.png)
 
 ## Table of Contents
