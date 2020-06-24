@@ -38,6 +38,12 @@ data = get_dataset(dataset=hyper_params['dataset'],
 model = get_model(hyper_params['model'], hyper_params['dataset'])
 model = model.to(args.gpu)
 
+# setting stage to classifier mode for particular experiments
+if hyper_params['experiment'] == 'fsp-kd' or hyper_params['experiment'] == 'traditional-kd':
+    hyper_params['stage'] = 1
+elif hyper_params['experiment'] == 'stagewise-kd':
+    hyper_params['stage'] = 5
+
 savename = get_savename(hyper_params, experiment=hyper_params['experiment'])
 model.load_state_dict(torch.load(savename))
 

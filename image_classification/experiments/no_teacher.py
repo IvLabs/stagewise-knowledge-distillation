@@ -41,11 +41,12 @@ data = get_dataset(dataset=hyper_params['dataset'],
 net = get_model(hyper_params['model'], hyper_params['dataset'])
 net = net.to(args.gpu)
 
-project_name = expt + '-' + hyper_params['model'] + '-' + hyper_params['dataset']
-experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
-experiment.log_parameters(hyper_params)
+if args.api_key:
+    project_name = expt + '-' + hyper_params['model'] + '-' + hyper_params['dataset']
+    experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+    experiment.log_parameters(hyper_params)
 
-optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
+optimizer = torch.optim.Adam(net.parameters(), lr=hyper_params["learning_rate"])
 loss_function = nn.CrossEntropyLoss()
 savename = get_savename(hyper_params, experiment=expt)
 best_val_acc = 0
@@ -64,6 +65,7 @@ for epoch in range(hyper_params['num_epochs']):
                                                                 savename=savename,
                                                                 best_val_acc=best_val_acc
                                                                 )
-    experiment.log_metric("train_loss", train_loss)
-    experiment.log_metric("val_loss", val_loss)
-    experiment.log_metric("val_acc", val_acc * 100)
+    if args.api_key:
+        experiment.log_metric("train_loss", train_loss)
+        experiment.log_metric("val_loss", val_loss)
+        experiment.log_metric("val_acc", val_acc * 100)

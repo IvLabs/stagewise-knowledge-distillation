@@ -57,12 +57,13 @@ for stage in range(2):
     print('stage :', hyper_params['stage'])
     print('-------------------------------')
 
-    project_name = expt + '-' + hyper_params['model'] + '-' + hyper_params['dataset']
-    experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name = project_name, workspace="akshaykvnit")
-    experiment.log_parameters(hyper_params)
+    if args.api_key:
+        project_name = expt + '-' + hyper_params['model'] + '-' + hyper_params['dataset']
+        experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+        experiment.log_parameters(hyper_params)
 
     savename = get_savename(hyper_params, experiment=expt)
-    optimizer = torch.optim.Adam(net.parameters(), lr = hyper_params["learning_rate"])
+    optimizer = torch.optim.Adam(net.parameters(), lr=hyper_params["learning_rate"])
 
     if hyper_params['stage'] != 1:
         loss_function = nn.MSELoss()
@@ -82,8 +83,9 @@ for stage in range(2):
                                                                 best_val_acc=best_val_loss,
                                                                 expt=expt
                                                                 )
-            experiment.log_metric("train_loss", train_loss)
-            experiment.log_metric("val_loss", val_loss)
+            if args.api_key:
+                experiment.log_metric("train_loss", train_loss)
+                experiment.log_metric("val_loss", val_loss)
     else:
         loss_function = nn.CrossEntropyLoss()
         best_val_acc = 0
@@ -101,6 +103,7 @@ for stage in range(2):
                                                                     savename=savename,
                                                                     best_val_acc=best_val_acc
                                                                     )
-            experiment.log_metric("train_loss", train_loss)
-            experiment.log_metric("val_loss", val_loss)
-            experiment.log_metric("val_acc", val_acc * 100)
+            if args.api_key:
+                experiment.log_metric("train_loss", train_loss)
+                experiment.log_metric("val_loss", val_loss)
+                experiment.log_metric("val_acc", val_acc * 100)

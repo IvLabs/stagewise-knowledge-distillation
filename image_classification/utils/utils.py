@@ -90,11 +90,8 @@ def get_savename(hyper_params, experiment):
 
 def get_model(model_name, dataset, data=None, teach=False):
     if teach and data:
-        load_name = dataset
-        if dataset == 'cifar10' :
-            load_name = dataset[ : -2]
         teacher = cnn_learner(data, models.resnet34, metrics=accuracy, pretrained=False)
-        teacher = teacher.load(os.path.expanduser("~") + '/.fastai/data/' + load_name + '/models/resnet34_' + load_name + '_bs64')
+        teacher = teacher.load(os.path.expanduser("~") + '/.fastai/data/' + dataset + '/models/resnet34_' + dataset + '_bs64')
         teacher.freeze()
 
     net =  getattr(custom_resnet, model_name)(pretrained=False, progress=False)

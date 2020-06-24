@@ -283,9 +283,10 @@ def train_stagewise(hyper_params, teacher, student, sf_teacher, sf_student, trai
         # Freeze all stages except current stage
         student = unfreeze(student, hyper_params['stage'])
 
-        project_name = 'stagewise-' + hyper_params['model']
-        experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
-        experiment.log_parameters(hyper_params)
+        if args.api_key:
+            project_name = 'stagewise-' + hyper_params['model']
+            experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+            experiment.log_parameters(hyper_params)
 
         optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
@@ -312,18 +313,19 @@ def train_stagewise(hyper_params, teacher, student, sf_teacher, sf_student, trai
                                                                          lowest_val=lowest_val_loss,
                                                                          args=args
                                                                          )
-            experiment.log_metric('train_loss', train_loss)
-            experiment.log_metric('val_loss', val_loss)
+            if args.api_key:
+                experiment.log_metric('train_loss', train_loss)
+                experiment.log_metric('val_loss', val_loss)
 
     hyper_params['stage'] = 9
     student.load_state_dict(torch.load(get_savename(hyper_params, mode='stagewise', p=args.percentage)))
     hyper_params['stage'] = 10
     # Freeze all stages except current stage
     student = unfreeze(student, hyper_params['stage'])
-    project_name = 'stagewise-' + hyper_params['model']
-    experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name,
-                            workspace="semseg_kd")
-    experiment.log_parameters(hyper_params)
+    if args.api_key:
+        project_name = 'stagewise-' + hyper_params['model']
+        experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+        experiment.log_parameters(hyper_params)
 
     optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
@@ -348,17 +350,19 @@ def train_stagewise(hyper_params, teacher, student, sf_teacher, sf_student, trai
             highest_iou=highest_iou,
             args=args
         )
-        experiment.log_metric('train_loss', train_loss)
-        experiment.log_metric('val_loss', val_loss)
-        experiment.log_metric('avg_iou', avg_iou)
-        experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
-        experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
+        if args.api_key:
+            experiment.log_metric('train_loss', train_loss)
+            experiment.log_metric('val_loss', val_loss)
+            experiment.log_metric('avg_iou', avg_iou)
+            experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
+            experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
 
 
 def pretrain(hyper_params, unet, trainloader, valloader, args):
-    project_name = 'pretrain-' + hyper_params['dataset'] + '-' + hyper_params['model']
-    experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
-    experiment.log_parameters(hyper_params)
+    if args.api_key:
+        project_name = 'pretrain-' + hyper_params['dataset'] + '-' + hyper_params['model']
+        experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+        experiment.log_parameters(hyper_params)
 
     optimizer = torch.optim.Adam(unet.parameters(), lr=hyper_params['learning_rate'])
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
@@ -388,17 +392,19 @@ def pretrain(hyper_params, unet, trainloader, valloader, args):
                                                                                                 highest_iou=highest_iou,
                                                                                                 args=args
                                                                                                 )
-        experiment.log_metric('train_loss', train_loss)
-        experiment.log_metric('val_loss', val_loss)
-        experiment.log_metric('avg_iou', avg_iou)
-        experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
-        experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
+        if args.api_key:
+            experiment.log_metric('train_loss', train_loss)
+            experiment.log_metric('val_loss', val_loss)
+            experiment.log_metric('avg_iou', avg_iou)
+            experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
+            experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
 
 
 def train_simultaneous(hyper_params, teacher, student, sf_teacher, sf_student, trainloader, valloader, args):
-    project_name = 'simultaneous-' + hyper_params['dataset'] + '-' + hyper_params['model']
-    experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
-    experiment.log_parameters(hyper_params)
+    if args.api_key:
+        project_name = 'simultaneous-' + hyper_params['dataset'] + '-' + hyper_params['model']
+        experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+        experiment.log_parameters(hyper_params)
 
     optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
@@ -434,11 +440,12 @@ def train_simultaneous(hyper_params, teacher, student, sf_teacher, sf_student, t
                                                                                        highest_iou=highest_iou,
                                                                                        args=args
                                                                                        )
-        experiment.log_metric('train_loss', train_loss)
-        experiment.log_metric('val_loss', val_loss)
-        experiment.log_metric('avg_iou', avg_iou)
-        experiment.log_metric('avg_pixel_acc', avg_px_acc)
-        experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
+        if args.api_key:
+            experiment.log_metric('train_loss', train_loss)
+            experiment.log_metric('val_loss', val_loss)
+            experiment.log_metric('avg_iou', avg_iou)
+            experiment.log_metric('avg_pixel_acc', avg_px_acc)
+            experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
 
 
 def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, trainloader, valloader, args):
@@ -454,9 +461,10 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
         # Freeze all stages except current stage
         student = unfreeze_trad(student, hyper_params['stage'])
 
-        project_name = 'trad-kd-' + hyper_params['dataset'] + '-' + hyper_params['model']
-        experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
-        experiment.log_parameters(hyper_params)
+        if args.api_key:
+            project_name = 'trad-kd-' + hyper_params['dataset'] + '-' + hyper_params['model']
+            experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+            experiment.log_parameters(hyper_params)
 
         optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
@@ -482,8 +490,9 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
                                                                          lowest_val=lowest_val_loss,
                                                                          args=args
                                                                          )
-            experiment.log_metric('train_loss', train_loss)
-            experiment.log_metric('val_loss', val_loss)
+            if args.api_key:
+                experiment.log_metric('train_loss', train_loss)
+                experiment.log_metric('val_loss', val_loss)
             print(round(val_loss, 6))
 
     # Classifier training
@@ -494,9 +503,10 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
     # Freeze all stages except current stage
     student = unfreeze_trad(student, hyper_params['stage'])
 
-    project_name = 'trad-kd-' + hyper_params['dataset'] + '-' + hyper_params['model']
-    experiment = Experiment(api_key="1jNZ1sunRoAoI2TyremCNnYLO", project_name=project_name, workspace="semseg_kd")
-    experiment.log_parameters(hyper_params)
+    if args.api_key:
+        project_name = 'trad-kd-' + hyper_params['dataset'] + '-' + hyper_params['model']
+        experiment = Experiment(api_key=args.api_key, project_name=project_name, workspace=args.workspace)
+        experiment.log_parameters(hyper_params)
 
     optimizer = torch.optim.Adam(student.parameters(), lr=hyper_params['learning_rate'])
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, steps_per_epoch=len(trainloader),
@@ -525,11 +535,12 @@ def train_traditional(hyper_params, teacher, student, sf_teacher, sf_student, tr
                                                                                                    highest_iou=highest_iou,
                                                                                                    args=args
                                                                                                    )
-        experiment.log_metric('train_loss', train_loss)
-        experiment.log_metric('val_loss', val_loss)
-        experiment.log_metric('avg_iou', avg_iou)
-        experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
-        experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
+        if args.api_key:
+            experiment.log_metric('train_loss', train_loss)
+            experiment.log_metric('val_loss', val_loss)
+            experiment.log_metric('avg_iou', avg_iou)
+            experiment.log_metric('avg_pixel_acc', avg_pixel_acc)
+            experiment.log_metric('avg_dice_coeff', avg_dice_coeff)
 
 
 def evaluate(valloader, args, params, mode):
