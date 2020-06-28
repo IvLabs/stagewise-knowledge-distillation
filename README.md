@@ -92,7 +92,7 @@ python3 fsp_kd.py -d cifar10 -m resnet14 -p 30 -e 100 -s 0
 python3 attention_transfer_kd.py -d imagewoof -m resnet26 -p 10 -e 100 -s 0
 ```
 
-#### Simultaneous KD (Proposed Method)
+#### Simultaneous KD (Proposed Baseline)
 40% Imagenette dataset, ResNet20
 ```
 python3 simultaneous_kd.py -d imagenette -m resnet20 -p 40 -e 100 -s 0
