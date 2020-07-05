@@ -14,7 +14,7 @@
       - [Traditional KD (FitNets)](#traditional-kd-fitnets)
       - [FSP KD](#fsp-kd)
       - [Attention Transfer KD](#attention-transfer-kd)
-      - [Simultaneous KD (Proposed Method)](#simultaneous-kd-proposed-method)
+      - [Simultaneous KD (Proposed Baseline)](#simultaneous-kd-proposed-baseline)
       - [Stagewise KD (Proposed Method)](#stagewise-kd-proposed-method)
   - [Semantic Segmentation](#semantic-segmentation)
     - [Introduction](#introduction-1)
@@ -22,7 +22,7 @@
     - [Experiments](#experiments-1)
       - [No Teacher](#no-teacher-1)
       - [Traditional KD (FitNets)](#traditional-kd-fitnets-1)
-      - [Simultaneous KD (Proposed Method)](#simultaneous-kd-proposed-method-1)
+      - [Simultaneous KD (Proposed Baseline)](#simultaneous-kd-proposed-baseline-1)
       - [Stagewise KD (Proposed Method)](#stagewise-kd-proposed-method-1)
   - [Citation](#citation)
 
@@ -112,6 +112,7 @@ In this work, [ResNet](https://arxiv.org/abs/1512.03385) backbones are used to c
 ### Preparation
 - The following script
     - downloads the data (and shifts it to appropriate folder)
+    - saves 10%, 20%, 30% and 40% splits of each dataset separately
     - downloads the pretrained teacher weights in appropriate folder
     ```
     # assuming you are in the root folder of the repository
@@ -145,7 +146,7 @@ python3 pretrain.py -d camvid -m resnet10 -e 100 -s 0
 python3 traditional_kd.py -d camvid -m resnet18 -p 20 -e 100 -s 0
 ```
 
-#### Simultaneous KD (Proposed Method)
+#### Simultaneous KD (Proposed Baseline)
 40% CamVid dataset, ResNet20
 ```
 python3 simultaneous_kd.py -d camvid -m resnet20 -p 40 -e 100 -s 0

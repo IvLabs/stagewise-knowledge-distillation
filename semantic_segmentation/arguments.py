@@ -28,5 +28,6 @@ def get_args(desc="No Desc", mode='train'):
         parser = argparse.ArgumentParser(description='Reducing dataset size')
         parser.add_argument('-p', '--percentage', type=int, help='Give percentage of dataset')
         args = parser.parse_args()
-    else: print(f'invalid mode: {mode}')
+    else:
+        print(f'invalid mode: {mode}')
     return args
