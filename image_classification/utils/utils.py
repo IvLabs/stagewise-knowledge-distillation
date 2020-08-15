@@ -62,7 +62,7 @@ def freeze_student(model, hyper_params, experiment):
 
 
 def get_savename(hyper_params, experiment):
-    assert experiment in ['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'attention-kd', 'fsp-kd', 'no-teacher']
+    assert experiment in ['stagewise-kd', 'traditional-kd', 'simultaneous-kd', 'attention-kd', 'fsp-kd', 'no-teacher', 'hinton-kd']
     
     dsize = 'full_data' if hyper_params['percentage'] is None else f"less_data{str(hyper_params['percentage'])}"
 

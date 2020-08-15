@@ -14,6 +14,7 @@
       - [Traditional KD (FitNets)](#traditional-kd-fitnets)
       - [FSP KD](#fsp-kd)
       - [Attention Transfer KD](#attention-transfer-kd)
+      - [Hinton KD](#hinton-kd)
       - [Simultaneous KD (Proposed Baseline)](#simultaneous-kd-proposed-baseline)
       - [Stagewise KD (Proposed Method)](#stagewise-kd-proposed-method)
   - [Semantic Segmentation](#semantic-segmentation)
@@ -90,6 +91,12 @@ python3 fsp_kd.py -d cifar10 -m resnet14 -p 30 -e 100 -s 0
 10% Imagewoof dataset, ResNet26
 ```
 python3 attention_transfer_kd.py -d imagewoof -m resnet26 -p 10 -e 100 -s 0
+```
+
+#### [Hinton KD](https://arxiv.org/abs/1503.02531)
+Full CIFAR10 dataset, ResNet14
+```
+python3 hinton_kd.py -d cifar10 -m resnet14 -e 100 -s 0
 ```
 
 #### Simultaneous KD (Proposed Baseline)

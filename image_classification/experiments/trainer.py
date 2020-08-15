@@ -25,12 +25,22 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
 
         y_pred = student(images)
         if teacher is not None:
-            _ = teacher(images)
+            soft_targets = teacher(images)
 
         # classifier training
         if teacher is None:
             loss = loss_function(y_pred, labels)
         # stage training (and assuming sf_teacher and sf_student are given)
+
+        elif expt == 'hinton-kd':
+            TEMP = hyper_params['temperature']
+            ALPHA = hyper_params['alpha']
+            
+            soft_targets = F.softmax(soft_targets/TEMP,dim=1)
+            loss = loss_function(F.log_softmax(y_pred/TEMP,dim=1),soft_targets)*(1-ALPHA)*TEMP*TEMP
+            loss += loss_function2(F.softmax(y_pred,dim=1),labels)*(ALPHA)
+
+
         elif loss_function2 is None:
             if expt == 'fsp-kd':
                 loss = 0
@@ -81,7 +91,7 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
 
             y_pred = student(images)
             if teacher is not None:
-                _ = teacher(images)
+              soft_targets = teacher(images)
 
             # classifier training
             if teacher is None:
@@ -92,6 +102,19 @@ def train(student, teacher, data, sf_teacher, sf_student, loss_function, loss_fu
 
                 total += labels.size(0)
                 correct += (pred_ind == labels).sum().item()
+            
+            elif expt == 'hinton-kd':
+                ALPHA = hyper_params['alpha']
+
+                y_pred = F.log_softmax(y_pred, dim = 1)
+                _, pred_ind = torch.max(y_pred, 1)
+
+                total += labels.size(0)
+                correct += (pred_ind == labels).sum().item()
+
+                loss = loss_function2(y_pred,labels)
+
+
             # stage training
             elif loss_function2 is None:
                 if expt == 'fsp-kd':
