@@ -168,13 +168,13 @@ python3 stagewise_kd.py -d camvid -m resnet10 -p 10 -e 100 -s 0
 ## Citation
 If you use this code or method in your work, please cite using
 ```
-@misc{kulkarni2019stagewise,
-    title={Stagewise Knowledge Distillation},
-    author={Akshay Kulkarni and Navid Panchi and Shital Chiddarwar},
-    year={2019},
-    eprint={1911.06786},
-    archivePrefix={arXiv},
-    primaryClass={cs.LG}
+@misc{kulkarni2020data,
+      title={Data Efficient Stagewise Knowledge Distillation}, 
+      author={Akshay Kulkarni and Navid Panchi and Sharath Chandra Raparthy and Shital Chiddarwar},
+      year={2020},
+      eprint={1911.06786},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
 }
 ```
 
